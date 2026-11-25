@@ -179,3 +179,4 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-o
   .m-bar .seg.acts button span{font-size:20px}
   .quick{display:none}
 }
+.seg button[data-s="karaoke"][aria-pressed="true"]{background:linear-gradient(90deg,#ff5fa2,#a78bfa);color:#1a0b1f;box-shadow:0 0 14px rgba(255,95,162,.4)}

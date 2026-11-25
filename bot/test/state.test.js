@@ -59,3 +59,8 @@ test('outside activities still count when not in the call, indoor ones do not', 
   assert.equal(resolveActivity({ inChannel: false, pick: 'gaming' }), 'offline');
   assert.equal(resolveActivity({ inChannel: false, pick: null }), 'offline');
 });
+
+test('karaoke is an indoor pick', () => {
+  assert.equal(resolveActivity({ inChannel: true, pick: 'karaoke' }), 'karaoke');
+  assert.equal(resolveActivity({ inChannel: false, pick: 'karaoke' }), 'offline');
+});

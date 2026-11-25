@@ -6,6 +6,7 @@ const GROUPS = [
   ['cafe', '☕', 'Working outside'],
   ['gaming', '🎮', 'Gaming'],
   ['meeting', '🤝', 'In a meeting with Simon'],
+  ['karaoke', '🎤', 'Singing karaoke'],
   ['eating', '🍜', 'Eating ramen'],
   ['phone', '📱', 'Scrolling'],
   ['out', '🙏', "Outside praying Simon doesn't find them"],

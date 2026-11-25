@@ -6,7 +6,7 @@
 //   'working' (default) | 'cafe' | 'gaming' | 'meeting' | 'eating' | 'phone' | 'out'
 // Deafening is a shortcut to 'meeting' (each person can switch that off).
 // Picking something by hand while deafened wins until you deafen/undeafen again.
-export const ACTIVITIES = ['working', 'cafe', 'gaming', 'meeting', 'eating', 'phone', 'out'];
+export const ACTIVITIES = ['working', 'cafe', 'gaming', 'meeting', 'karaoke', 'eating', 'phone', 'out'];
 // Outside activities also work when you're not in the call ("around, just not in voice").
 export const OFFLINE_OK = ['cafe', 'out'];
 

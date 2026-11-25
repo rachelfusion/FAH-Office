@@ -134,7 +134,7 @@ function findPath(from,to){
 }
 
 /* ============================ the room ============================ */
-const SP={beds:[],seats:[],lounge:[],extras:[],gaming:[],phone:[],dining:[],cafe:[],out:[]};
+const SP={beds:[],seats:[],lounge:[],extras:[],gaming:[],phone:[],dining:[],cafe:[],out:[],karaoke:[]};
 const DYN={steam:[],tvGlow:null,lamps:[],lampGlows:[],blankets:[],cones:[],leds:[],docks:[],strip:[],stripGlows:[],tv:null,lava:[],disco:null,discoGlints:[]};
 const C={floor:0x241d2e,plank:0x2b2337,wallB:0x2c2343,wallL:0x271f3c,trim:0x3b2f58,wood:0x5c3f35,woodD:0x3d2a24,dark:0x2a2236};
 
@@ -254,6 +254,36 @@ solid(17,5,19.4,5.8,0,1.0,0x1b1724,{r:0.1}); BB(16.95,4.95,19.45,5.85,0.98,1.06,
   torus(0.24,0.015,PI*2,0xa78bfa,x,0.55,5.78,scene,{em:1,cast:false}); });
 const BOOTH=[{x:17.6,z:4.35},{x:18.8,z:4.35}], DOCKS=[{x:21.25,z:3.3},{x:21.25,z:4.8}];
 DOCKS.forEach(d=>{ cyl(0.45,0.08,0x2c2540,d.x,0.04,d.z); const m=own('#7dffb2',0.4); cyl(0.36,0.02,0,d.x,0.09,d.z,{mat:m,cast:false}); DYN.docks.push(m); });
+
+// karaoke stage in front of the decks: lyrics screen above the booth, a spotlight per mic
+const KAR={on:false,t:0,drawT:0};
+{
+  B(3.4,0.15,1.8,0x2a2236,18.2,0.075,7.0,scene,{r:0.06});
+  BB(16.5,7.88,19.9,7.93,0.02,0.135,0xff5fa2,{em:1.2,r:0,cast:false}); BB(16.5,6.07,19.9,6.12,0.02,0.135,0xa78bfa,{em:1.2,r:0,cast:false});
+  [16.9,19.5].forEach(x=>cyl(0.04,2.9,0x2a2236,x,1.45,3.95));
+  B(2.84,0.98,0.08,0x0b0b10,18.2,2.45,3.95,scene,{r:0.04});
+  const kc=document.createElement('canvas'); kc.width=1024; kc.height=340; KAR.ctx=kc.getContext('2d'); KAR.tex=new THREE.CanvasTexture(kc);
+  KAR.mat=new THREE.MeshBasicMaterial({map:KAR.tex,color:0x8a86a0});
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(2.7,0.88),KAR.mat); scr.position.set(18.2,2.45,4.0); scene.add(scr);
+  KAR.glow=glow(18.2,2.45,4.3,'#ff5fa2',3.4,0);
+  KAR.lines=["♪ locked in till the morning light ♪","♪ Simon's calling, but we hide tonight ♪","♪ ramen, boba, neon glow ♪","♪ crew office, here we go ♪"];
+  [16.9,17.7,18.5,19.3].forEach((x,i)=>{
+    const cone=new THREE.Mesh(new THREE.ConeGeometry(0.55,2.6,20,1,true),new THREE.MeshBasicMaterial({color:0xfff0c8,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+    cone.position.set(x,1.45,7.0); scene.add(cone);
+    SP.karaoke.push({kind:'karaoke',i,approach:{x,z:7.6},pose:{x,y:0.15,z:7.0,rot:0,anim:'sing'},cone,glow:glow(x,0.22,7.0,'#fff0c8',1.3,0)});
+  });
+}
+function drawLyrics(t,on){
+  const c=KAR.ctx; c.fillStyle='#120d1f'; c.fillRect(0,0,1024,340); c.textAlign='center';
+  if(!on){ c.fillStyle='#6c6390'; c.font='700 60px DM Sans, sans-serif'; c.fillText('karaoke · grab a mic 🎤',512,190); KAR.tex.needsUpdate=true; return; }
+  const n=KAR.lines.length, cycle=4, idx=Math.floor(t/cycle)%n, prog=(t%cycle)/cycle;
+  c.font='700 58px DM Sans, sans-serif'; c.textAlign='left';
+  const line=(txt,y,active)=>{ const w=c.measureText(txt).width, x=512-w/2; c.fillStyle=active?'#f2edff':'#6c6390'; c.fillText(txt,x,y);
+    if(active){ c.save(); c.beginPath(); c.rect(x,y-62,w*prog,84); c.clip(); c.fillStyle='#ff5fa2'; c.fillText(txt,x,y); c.restore(); } };
+  line(KAR.lines[idx],150,true); line(KAR.lines[(idx+1)%n],255,false);
+  KAR.tex.needsUpdate=true;
+}
+drawLyrics(0,false);
 
 // lounge: velvet couch, round coffee table, lava lamp, TV, beanbags, disco ball
 solid(14.3,11,15.6,14.6,0,0.45,0x4b2f78,{r:0.16}); B(0.34,0.7,3.6,0x4b2f78,14.47,0.75,12.8,scene,{r:0.15});
@@ -532,6 +562,7 @@ function buildPerson(L){
   P.mug=new THREE.Group(); cyl(0.065,0.14,0xffffff,0,0,0,{parent:P.mug}); torus(0.038,0.012,PI*2,0xffffff,0.075,0,0,P.mug); P.mug.position.set(0,-0.02,0.08); P.armRH.add(P.mug);
   P.pad=new THREE.Group(); B(0.26,0.05,0.13,0x1b1622,0,0,0,P.pad,{r:0.025}); sph(0.02,0x5ee7ff,0.07,0.03,0.02,P.pad,{em:1,cast:false,seg:6}); sph(0.02,0xff5fa2,0.1,0.03,-0.02,P.pad,{em:1,cast:false,seg:6}); B(0.05,0.02,0.05,0x444444,-0.08,0.03,0,P.pad,{r:0});
   P.pad.position.set(-0.17,-0.02,0.06); P.pad.rotation.x=PI/2; P.armRH.add(P.pad);
+  P.mic=new THREE.Group(); capsule(0.024,0.1,0x1b1622,0,0,0,P.mic); sph(0.05,0xcfd3dc,0,0.1,0,P.mic,{seg:10}); P.mic.position.set(0,-0.02,0.05); P.mic.rotation.x=PI; P.armRH.add(P.mic);
   P.boba=new THREE.Group(); cyl(0.055,0.16,0xf1dcb8,0,0,0,{parent:P.boba,r2:0.045}); cyl(0.058,0.014,0xffffff,0,0.085,0,{parent:P.boba}); cyl(0.008,0.14,0xff5fa2,0.012,0.15,0,{parent:P.boba}); [-0.02,0.02].forEach(dx=>sph(0.014,0x2a1a10,dx,-0.06,0.02,P.boba,{seg:6,cast:false})); P.boba.position.set(0,-0.03,0.07); P.armRH.add(P.boba);
   P.bag=new THREE.Group(); B(0.2,0.22,0.08,0xff8fb1,0,-0.13,0,P.bag,{r:0.02}); torus(0.05,0.008,PI,0xffffff,0,-0.02,0,P.bag); P.armLH.add(P.bag);
   P.sticks=new THREE.Group(); [-0.012,0.012].forEach(dx=>{ const c=capsule(0.006,0.2,0xe8c99a,dx,0,0,P.sticks,{cast:false}); c.rotation.x=0.3; }); P.sticks.position.set(0,-0.04,0.07); P.armRH.add(P.sticks);
@@ -603,9 +634,9 @@ function loungeFor(){ const f=free(SP.lounge); return f[Math.floor(Math.random()
 function lerpAng(a,b,t){ const d=((b-a+PI)%(2*PI)+2*PI)%(2*PI)-PI; return a+d*t; }
 
 function meetingSeatFor(ch){ const f=free(SP.meeting); return f[0]||SP.meeting[0]; }
-const ACTS=[['working','💻','working'],['cafe','☕','outside'],['gaming','🎮','gaming'],['meeting','🤝','meeting'],['eating','🍜','eating'],['phone','📱','phone'],['out','🙏','hiding']];
-const ACT_ICON={working:'💻',cafe:'☕',gaming:'🎮',meeting:'🤝',eating:'🍜',phone:'📱',out:'🙏',offline:'💤'};
-const ACT_ANIM={gaming:'game',eating:'eat',phone:'phone',cafe:'cafe'};
+const ACTS=[['working','💻','working'],['cafe','☕','outside'],['gaming','🎮','gaming'],['meeting','🤝','meeting'],['karaoke','🎤','karaoke'],['eating','🍜','eating'],['phone','📱','phone'],['out','🙏','hiding']];
+const ACT_ICON={working:'💻',cafe:'☕',gaming:'🎮',meeting:'🤝',karaoke:'🎤',eating:'🍜',phone:'📱',out:'🙏',offline:'💤'};
+const ACT_ANIM={gaming:'game',eating:'eat',phone:'phone',cafe:'cafe',karaoke:'sing'};
 function firstFree(lists){ for(const l of lists){ const f=free(l); if(f.length) return f[0]; } return lists[0][0]; }
 function spotFor(ch,st){
   if(st==='offline') return SP.beds[ch.e.bed];
@@ -615,6 +646,7 @@ function spotFor(ch,st){
   if(st==='phone') return firstFree([SP.phone,SP.gaming]);
   if(st==='eating') return firstFree([SP.dining]);
   if(st==='cafe') return firstFree([SP.cafe]);
+  if(st==='karaoke') return firstFree([SP.karaoke]);
   if(st==='out'){ ch.hasBag=Math.random()<.5; const f=free(SP.out); return f[Math.floor(Math.random()*f.length)]||SP.out[0]; }
   return seatFor(ch);
 }
@@ -677,7 +709,7 @@ function animPerson(ch,t,force){
   const a= force || (ch.path.length||(ch.glide&&!ch.posed&&ch.glide.t<0.6) ? 'walk' : (ch.posed? (ch.animOverride||ch.spot.pose.anim) : 'stand'));
   ch.anim=a;
   RESET_KEYS.forEach(k=>P[k].rotation.set(0,0,0));
-  P.body.position.y=0; P.phone.visible=false; P.mug.visible=false; if(P.pad){ P.pad.visible=false; P.sticks.visible=false; P.boba.visible=false; P.bag.visible=false; }
+  P.body.position.y=0; P.phone.visible=false; P.mug.visible=false; if(P.pad){ P.pad.visible=false; P.sticks.visible=false; P.boba.visible=false; P.bag.visible=false; P.mic.visible=false; }
   const sit=()=>{ P.legL.rotation.x=-PI/2; P.legR.rotation.x=-PI/2; };
   if(a==='walk'){ const s=Math.sin(t*11+ph); P.legL.rotation.x=s*.6; P.legR.rotation.x=-s*.6; P.armL.rotation.x=-s*.55; P.armR.rotation.x=s*.55; P.body.position.y=Math.abs(Math.cos(t*11+ph))*.05; P.head.rotation.z=Math.sin(t*5.5+ph)*.05; }
   else if(a==='type'){ sit();
@@ -688,6 +720,9 @@ function animPerson(ch,t,force){
   else if(a==='sleep'){ P.torso.rotation.x=Math.sin(t*1.5+ph)*.025; P.head.rotation.y=Math.sin(t*.3+ph)*.1; }
   else if(a==='mug'){ const sip=Math.sin(t*1.1+ph)>.75; P.armR.rotation.x=sip?-2.1:-1.0; P.head.rotation.x=sip?-.25:0; P.mug.visible=true; }
   else if(a==='board'){ P.armR.rotation.x=-2.4+Math.sin(t*5)*.18; P.armR.rotation.z=Math.sin(t*3)*.25; P.head.rotation.x=-.1; }
+  else if(a==='sing'){ const b=Math.sin(t*6+ph); P.armR.rotation.x=-2.25; P.armR.rotation.z=.35; P.mic.visible=true;
+    P.armL.rotation.z=-0.55-Math.max(0,b)*0.9; P.armL.rotation.x=-0.3; P.head.rotation.z=Math.sin(t*3+ph)*.16; P.head.rotation.x=-.12;
+    P.body.position.y=Math.abs(Math.sin(t*6+ph))*.045; P.torso.rotation.z=Math.sin(t*3+ph)*.07; }
   else if(a==='cafe'){ sit(); const sip=Math.sin(t*.7+ph)>.8;
     if(sip){ P.armR.rotation.x=-2.0; P.armR.rotation.z=.2; P.mug.visible=true; P.armL.rotation.x=-1.25; P.head.rotation.x=-.15; }
     else { P.armL.rotation.x=-1.25+Math.sin(t*16+ph)*.07; P.armR.rotation.x=-1.25+Math.sin(t*16+ph+1.6)*.07; P.head.rotation.x=.12; } }
@@ -739,7 +774,7 @@ function moveChar(ch,dt){
 
 /* ============================ labels ============================ */
 const v3=new THREE.Vector3();
-const ZONES=[['bunk room',2.3,10.0],['big table',11,7.8],['lounge',17.6,16.1],['decks',18.2,6.5],['kitchen',19.4,2.6],['ramen bar',2.9,13.9]].map(([t,x,z])=>{ const el=document.createElement('div'); el.className='zone'; el.textContent=t; labelsBox.appendChild(el); return {el,x,z}; });
+const ZONES=[['bunk room',2.3,10.0],['big table',11,7.8],['lounge',17.6,16.1],['karaoke',18.2,8.45],['kitchen',19.4,2.6],['ramen bar',2.9,13.9]].map(([t,x,z])=>{ const el=document.createElement('div'); el.className='zone'; el.textContent=t; labelsBox.appendChild(el); return {el,x,z}; });
 function screenPos(x,y,z){ v3.set(x,y,z).project(camera); return [(v3.x+1)/2*stage.clientWidth,(1-v3.y)/2*stage.clientHeight]; }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function iconFor(ch){
@@ -773,6 +808,16 @@ const tmpC=new THREE.Color();
 const stripHue=(u,t)=>0.52+0.42*(0.5+0.5*Math.sin(u*0.32+t*0.7));
 function ambient(dt,t){
   const playing=CH.some(c=>c.kind==='bot'&&c.playing&&c.state==='on');
+  const singers=CH.filter(c=>c.kind==='person'&&c.state==='karaoke'&&c.posed&&c.spot.kind==='karaoke');
+  const kOn=singers.length>0;
+  if(kOn){ KAR.t+=dt; KAR.drawT-=dt; if(KAR.drawT<=0){ KAR.drawT=0.08; drawLyrics(KAR.t,true); } }
+  else if(KAR.on) drawLyrics(0,false);
+  if(kOn!==KAR.on){ KAR.on=kOn; KAR.mat.color.setHex(kOn?0xffffff:0x8a86a0); if(!kOn) KAR.t=0; }
+  KAR.glow.material.opacity= kOn? .3+Math.sin(t*4)*.06 : 0;
+  SP.karaoke.forEach((sp,k)=>{ const on=singers.some(c=>c.spot===sp); sp.cone.material.opacity= on? .1+Math.sin(t*3+k)*.025 : 0; sp.glow.material.opacity= on? .5 : 0; });
+  if(kOn){ KAR.noteT=(KAR.noteT||0)-dt; if(KAR.noteT<=0){ KAR.noteT=0.45; const c=singers[Math.floor(Math.random()*singers.length)];
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:NOTE_TEX[Math.floor(Math.random()*NOTE_TEX.length)],transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); s.scale.set(.42,.42,.42); s.position.set(c.g.position.x+rand(-.2,.2),1.9,c.g.position.z); scene.add(s);
+    notes.push({s,vx:rand(-.4,.4),vz:rand(.1,.4),life:0}); } }
   if(playing){ noteT-=dt; if(noteT<=0){ noteT=0.26; const x=Math.random()<.5?16.45:19.95;
     const s=new THREE.Sprite(new THREE.SpriteMaterial({map:NOTE_TEX[Math.floor(Math.random()*NOTE_TEX.length)],transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); s.scale.set(.5,.5,.5); s.position.set(x+rand(-.2,.2),1.6,5.4); scene.add(s);
     notes.push({s,vx:rand(-.5,.5),vz:rand(.1,.6),life:0}); } }
@@ -856,14 +901,14 @@ const vb=(ch,s3,base)=>ch.e.name==='You'?base:s3;
 function logState(ch,a,b){
   const n=ch.e.name;
   if(b==='offline') return log('voiceStateUpdate',`${n} left 🔊 Office`,`${n} ${vb(ch,'logs','log')} off and ${vb(ch,'goes','go')} to bed`);
-  const what={working:[`${vb(ch,'locks','lock')} in at the big table`],gaming:[`${vb(ch,'grabs','grab')} a controller on the couch`],meeting:[`${vb(ch,'heads','head')} into a meeting with Simon`],eating:[`${vb(ch,'gets','get')} a bowl of ramen at the bar`],cafe:[`${vb(ch,'heads','head')} outside to work from Moon Café`],out:[`${vb(ch,'sneaks','sneak')} outside, praying Simon doesn't find ${ch.e.name==='You'?'you':'them'}`],phone:[`${vb(ch,'flops','flop')} onto a beanbag to scroll`]}[b];
+  const what={karaoke:[`${vb(ch,'grabs','grab')} the mic for karaoke 🎤`],working:[`${vb(ch,'locks','lock')} in at the big table`],gaming:[`${vb(ch,'grabs','grab')} a controller on the couch`],meeting:[`${vb(ch,'heads','head')} into a meeting with Simon`],eating:[`${vb(ch,'gets','get')} a bowl of ramen at the bar`],cafe:[`${vb(ch,'heads','head')} outside to work from Moon Café`],out:[`${vb(ch,'sneaks','sneak')} outside, praying Simon doesn't find ${ch.e.name==='You'?'you':'them'}`],phone:[`${vb(ch,'flops','flop')} onto a beanbag to scroll`]}[b];
   if(!what) return;
   if(a==='offline') return log('voiceStateUpdate',`${n} joined 🔊 Office`,`${n} ${vb(ch,'wakes','wake')} up and ${what[0]}`);
   return log('activity',`${n} → ${b}`,`${n} ${what[0]}`);
 }
 function rowSub(ch){
   if(ch.kind==='bot') return ch.state==='off'?'not in the call · charging':ch.playing?`in call · playing ${ch.e.song}`:'in call · on the decks';
-  const sub={offline:'not in the call · sleeping',working:'locked in at the big table',gaming:'gaming on the couch',meeting:'in a meeting with Simon',eating:'eating ramen at the bar',phone:'scrolling on a beanbag',cafe:'working outside at Moon Café',out:`outside, praying Simon doesn't find ${ch.e.me?'you':'them'}`}[ch.state]||'';
+  const sub={offline:'not in the call · sleeping',working:'locked in at the big table',gaming:'gaming on the couch',meeting:'in a meeting with Simon',eating:'eating ramen at the bar',phone:'scrolling on a beanbag',karaoke:'singing karaoke on stage',cafe:'working outside at Moon Café',out:`outside, praying Simon doesn't find ${ch.e.me?'you':'them'}`}[ch.state]||'';
   if(ch.live&&ch.live.inCall===false&&ch.state!=='offline') return sub+' · not in the call';
   return ch.live&&ch.live.deafened&&ch.state!=='offline' ? sub+' · deafened' : sub;
 }
@@ -945,7 +990,7 @@ $('demo').onclick=()=>{
   $('log').innerHTML=''; log('demo','lights out, nobody in the call yet'); renderRows();
   const P=id=>byId(id);
   [[600,()=>setState(P('mia'),'working')],[2200,()=>setState(P('dan'),'working')],[3800,()=>setBot(P('dj'),true)],[6200,()=>setPlaying(P('dj'),true)],
-   [7400,()=>setState(P('you'),'working')],[10000,()=>setState(P('dan'),'eating')],[12000,()=>setState(P('zee'),'gaming')],[15000,()=>setState(P('mia'),'meeting')],[18000,()=>{ setState(P('you'),'cafe'); setView('all'); }],[21000,()=>setState(P('zee'),'out')],[26000,()=>setState(P('dan'),'working')],[30000,()=>setState(P('mia'),'offline')]]
+   [7400,()=>setState(P('you'),'working')],[10000,()=>setState(P('dan'),'eating')],[12000,()=>setState(P('zee'),'gaming')],[15000,()=>setState(P('mia'),'meeting')],[16500,()=>setState(P('dan'),'karaoke')],[18000,()=>{ setState(P('you'),'cafe'); setView('all'); }],[21000,()=>setState(P('zee'),'out')],[26000,()=>setState(P('dan'),'working')],[30000,()=>setState(P('mia'),'offline')]]
    .forEach(([ms,fn])=>demoTimers.push(setTimeout(fn,ms)));
 };
 $('allSleep').onclick=()=>{ demoTimers.forEach(clearTimeout); demoTimers=[]; CH.forEach(ch=>{ if(ch.kind==='bot') setBot(ch,false); else setState(ch,'offline'); }); };
