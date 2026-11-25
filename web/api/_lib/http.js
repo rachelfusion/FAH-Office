@@ -41,7 +41,9 @@ export const crewIds = () => (process.env.CREW_USER_IDS || '').split(',').map((s
 
 export function publicUrl(req) {
   const host = req.headers['x-forwarded-host'] || req.headers.host;
-  return (process.env.PUBLIC_URL || `https://${host}`).replace(/\/$/, '');
+  let url = (process.env.PUBLIC_URL || '').trim() || host;
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`; // "fah-office.vercel.app" works too
+  return url.replace(/\/+$/, '');
 }
 
 // The logged-in Discord user, or null.
