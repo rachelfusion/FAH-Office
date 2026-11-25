@@ -53,7 +53,7 @@ function resize(){
 new ResizeObserver(resize).observe(stage);
 
 // low, moody light: dim purple ambience + moonlight + coloured pools
-scene.add(new THREE.HemisphereLight(0x8a7bff,0x1a1024,0.5));
+const HEMI=new THREE.HemisphereLight(0x8a7bff,0x1a1024,0.5); scene.add(HEMI);
 const moon=new THREE.DirectionalLight(0x9aa8ff,0.32);
 moon.position.set(-4,26,-6); moon.target.position.set(11,0,8); scene.add(moon,moon.target);
 moon.castShadow=true; moon.shadow.mapSize.set(2048,2048);
@@ -229,6 +229,10 @@ SP.extras.push({kind:'fridge',approach:{x:20.35,z:1.6},pose:{x:20.35,y:0,z:1.5,r
 {
   const tx=2.9, tz=12.6;
   blockArea(tx-0.5,tz-0.5,tx+0.5,tz+0.5);
+  cyl(1.35,0.02,0x4a2a3a,tx,0.012,tz,{seg:40,cast:false}); cyl(1.15,0.024,0x5c3344,tx,0.014,tz,{seg:40,cast:false});
+  plight(0xffb070,1.6,6,tx,2.3,tz); plight(0xff8a5c,0.6,4,tx+0.2,1.2,tz+0.9);
+  cyl(0.008,0.9,0x111111,tx,3.1,tz,{cast:false}); const sh=cone(0.3,0.26,0xff8a5c,tx,2.55,tz,scene,{seg:20}); sh.material=own('#ff8a5c',0.35);
+  sph(0.08,0xffe2b0,tx,2.44,tz,scene,{em:1.4,cast:false}); glow(tx,2.35,tz,'#ffb070',2.0,.55);
   cyl(0.5,0.06,0x5c3f35,tx,0.98,tz,{seg:32}); cyl(0.05,0.95,0x2a2236,tx,0.48,tz); cyl(0.28,0.04,0x2a2236,tx,0.02,tz);
   [[tx-0.75,tz,PI/2],[tx+0.75,tz,-PI/2],[tx,tz-0.78,0]].forEach(([x,z,rot])=>{
     cyl(0.2,0.07,0xff5fa2,x,0.62,z,{seg:20}); cyl(0.035,0.58,0x444444,x,0.3,z); torus(0.13,0.012,PI*2,0x444444,x,0.25,z,scene).rotation.x=PI/2; cyl(0.17,0.03,0x333333,x,0.015,z);
@@ -828,7 +832,38 @@ $('mSave').onclick=()=>{
 
 /* ============================ main loop & start ============================ */
 let last=performance.now(), TT=0;
-function tick(dt){ TT+=dt; updateMeeting(); ALL().forEach(ch=>{ moveChar(ch,dt); aiTick(ch,dt); ch.kind==='bot'?animBot(ch,TT):animPerson(ch,TT); }); ambient(dt,TT);
+/* ============================ lights on / off (per viewer) ============================ */
+const LIGHTS={on:false,k:-1};
+try{ LIGHTS.on=localStorage.getItem('fah-lights')==='on'; }catch(_){}
+const WIN=[{m:M(0x151a3d,.7),night:0x151a3d,day:0xbfe6ff},{m:M(0x1a1f4d,.7),night:0x1a1f4d,day:0xa9dcff}];
+const LOOK={
+  night:{sky:new THREE.Color(0x8a7bff),ground:new THREE.Color(0x1a1024),hemi:.5,sun:new THREE.Color(0x9aa8ff),sunI:.32,fill:.16},
+  day:{sky:new THREE.Color(0xfffaf2),ground:new THREE.Color(0xa59a90),hemi:1.35,sun:new THREE.Color(0xfff1dc),sunI:1.0,fill:.45},
+};
+const tmpL=new THREE.Color();
+function applyLights(k){
+  const N=LOOK.night, D=LOOK.day, mix=(a,b)=>a+(b-a)*k;
+  HEMI.color.copy(N.sky).lerp(D.sky,k); HEMI.groundColor.copy(N.ground).lerp(D.ground,k); HEMI.intensity=mix(N.hemi,D.hemi);
+  moon.color.copy(N.sun).lerp(D.sun,k); moon.intensity=mix(N.sunI,D.sunI); fill.intensity=mix(N.fill,D.fill);
+  WIN.forEach(w=>{ tmpL.setHex(w.night).lerp(new THREE.Color(w.day),k); w.m.color.copy(tmpL); w.m.emissive.copy(tmpL); });
+  stage.classList.toggle('lights-on',k>.5);
+}
+function setLights(on){
+  LIGHTS.on=on;
+  try{ localStorage.setItem('fah-lights',on?'on':'off'); }catch(_){}
+  const b=$('lightsBtn'); if(b){ b.setAttribute('aria-pressed',on); b.textContent=on?'🌙 lights off':'💡 lights on'; }
+}
+function tickLights(dt){
+  const target=LIGHTS.on?1:0;
+  if(LIGHTS.k<0){ LIGHTS.k=target; applyLights(target); return; }
+  if(Math.abs(LIGHTS.k-target)<0.002) return;
+  LIGHTS.k+=(target-LIGHTS.k)*Math.min(1,dt*5); if(Math.abs(LIGHTS.k-target)<0.002) LIGHTS.k=target;
+  applyLights(LIGHTS.k);
+}
+if($('lightsBtn')){ $('lightsBtn').addEventListener('pointerdown',e=>e.stopPropagation()); $('lightsBtn').onclick=()=>setLights(!LIGHTS.on); }
+setLights(LIGHTS.on);
+
+function tick(dt){ TT+=dt; tickLights(dt); updateMeeting(); ALL().forEach(ch=>{ moveChar(ch,dt); aiTick(ch,dt); ch.kind==='bot'?animBot(ch,TT):animPerson(ch,TT); }); ambient(dt,TT);
   DYN.docks.forEach((m,i)=>{ const b=BOTS[i]&&byId(BOTS[i].id); m.emissiveIntensity= b&&b.state==='off'&&!b.path.length? .4+Math.sin(TT*3)*.3 : .1; }); }
 function frame(now){
   const dt=Math.min(.05,Math.max(0,(now-last)/1000)); last=now;
