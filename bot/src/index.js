@@ -5,10 +5,11 @@
 // over a connection the bot keeps open), so host it on Railway, Fly.io, Render
 // or any small always-on machine. Not on Vercel.
 import http from 'node:http';
-import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
 import { WebSocketServer } from 'ws';
 import { ACTIVITIES, botState, resolveActivity, voiceFacts } from './state.js';
 import { verify } from './token.js';
+import { BOARD_FOOTER, boardLines } from './board.js';
 
 const list = (v) => (v || '').split(',').map((s) => s.trim()).filter(Boolean);
 const cfg = {
@@ -20,6 +21,8 @@ const cfg = {
   secret: process.env.LIVE_SECRET,
   port: Number(process.env.PORT) || 8080,
   origins: list(process.env.ALLOWED_ORIGINS),
+  officeUrl: process.env.OFFICE_URL || 'https://fah-office.vercel.app',
+  boardChannelId: (process.env.BOARD_CHANNEL_ID || '').trim(),
 };
 
 const missing = { token: 'DISCORD_TOKEN', guildId: 'GUILD_ID', channelId: 'VOICE_CHANNEL_ID', secret: 'LIVE_SECRET' };
@@ -72,6 +75,7 @@ async function rebuild(reason) {
   const bots = await Promise.all(cfg.musicBots.map(async (id) => ({ ...(await memberInfo(guild, id)), state: botState(voice(id), cfg.channelId) })));
   snapshot = { type: 'state', channel: channel?.name ?? null, crew, bots, updatedAt: Date.now() };
   broadcast();
+  scheduleBoard();
   console.log(`[state] ${reason}: ${crew.map((c) => `${c.name}=${c.state}`).join(', ') || 'no crew'}`);
 }
 
@@ -81,10 +85,74 @@ function schedule(reason) {
   pending = setTimeout(() => rebuild(reason).catch((e) => console.error('[state] could not rebuild:', e.message)), 150);
 }
 
-client.once(Events.ClientReady, (c) => {
+client.once(Events.ClientReady, async (c) => {
   console.log(`Logged in as ${c.user.tag}, watching channel ${cfg.channelId}`);
   schedule('startup');
+  await registerCommands(c).catch(() => {});
+  if (!cfg.boardChannelId) console.log('[board] BOARD_CHANNEL_ID not set, so no live board. /office still works.');
 });
+
+/* ---------------- /office command and the live board ---------------- */
+const inviteUrl = (appId) => `https://discord.com/oauth2/authorize?client_id=${appId}&scope=bot%20applications.commands&permissions=84992`;
+
+function officeEmbed() {
+  return new EmbedBuilder()
+    .setColor(0xff5fa2)
+    .setTitle('🏢 FAH Office')
+    .setDescription(boardLines(snapshot).join('\n'))
+    .setFooter({ text: BOARD_FOOTER })
+    .setTimestamp(snapshot.updatedAt || Date.now());
+}
+function officeButton() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Open the office').setEmoji('🏢').setURL(cfg.officeUrl),
+  );
+}
+
+async function registerCommands(c) {
+  try {
+    const guild = await c.guilds.fetch(cfg.guildId);
+    await guild.commands.set([{ name: 'office', description: 'Open the FAH office and see who is doing what' }]);
+    console.log('[commands] /office is ready');
+  } catch (e) {
+    console.error(`[commands] could not add /office (${e.message}). Re-invite the bot with this link: ${inviteUrl(c.user.id)}`);
+  }
+}
+
+client.on(Events.InteractionCreate, async (i) => {
+  if (!i.isChatInputCommand() || i.commandName !== 'office') return;
+  await i.reply({ embeds: [officeEmbed()], components: [officeButton()], flags: MessageFlags.Ephemeral })
+    .catch((e) => console.error('[office]', e.message));
+});
+
+// One message in BOARD_CHANNEL_ID that the bot keeps editing. Updates are
+// bundled into one edit every few seconds to stay well under Discord's limits.
+let boardMsg = null;
+let boardTimer = null;
+let lastBoard = '';
+function scheduleBoard() {
+  if (!cfg.boardChannelId || boardTimer) return;
+  boardTimer = setTimeout(async () => {
+    boardTimer = null;
+    try { await updateBoard(); } catch (e) {
+      console.error(`[board] could not update (${e.message}). Check BOARD_CHANNEL_ID, or re-invite the bot: ${inviteUrl(client.user.id)}`);
+    }
+  }, 4000);
+}
+async function updateBoard() {
+  const text = boardLines(snapshot).join('\n');
+  if (boardMsg && text === lastBoard) return;
+  const channel = await client.channels.fetch(cfg.boardChannelId);
+  if (!channel || !channel.isTextBased()) throw new Error('BOARD_CHANNEL_ID is not a text channel');
+  if (!boardMsg) {
+    const recent = await channel.messages.fetch({ limit: 50 });
+    boardMsg = recent.find((m) => m.author.id === client.user.id && m.embeds[0]?.footer?.text === BOARD_FOOTER) || null;
+  }
+  const payload = { embeds: [officeEmbed()], components: [officeButton()] };
+  if (boardMsg) await boardMsg.edit(payload);
+  else { boardMsg = await channel.send(payload); console.log('[board] posted the live board. Pin it in Discord!'); }
+  lastBoard = text;
+}
 client.on(Events.VoiceStateUpdate, (before, after) => {
   const id = after.id;
   const watched = cfg.crew.includes(id) || cfg.musicBots.includes(id);

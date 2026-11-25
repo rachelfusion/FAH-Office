@@ -32,6 +32,7 @@ bot/
   src/index.js     watches the voice channel, serves the WebSocket at /live
   src/state.js     voice state + your pick → asleep / working / gaming / meeting / eating / phone
   src/token.js     checks the pass from the website
+  src/board.js     text for the live board and /office
   test/            node --test
 web/
   index.html, styles.css, office.js   the 3D office (works on its own as a demo)
@@ -78,6 +79,15 @@ Fly.io and Render work too; there's a `Dockerfile` in `bot/`.
 5. Deploy, then put the final address into Discord's OAuth2 redirect (step 1.3), `PUBLIC_URL` on Vercel, and optionally `ALLOWED_ORIGINS` on the bot.
 
 Open the site → **Log in with Discord** → the chip in the top right turns **● live**.
+
+## Opening it from Discord
+
+- **`/office`**: type it in any channel. The bot replies (only you see it) with who's doing what and an **Open the office** button.
+- **Live office board**: set `BOARD_CHANNEL_ID` on the bot to a text channel. The bot posts one message there and keeps editing it as people move around. Pin it.
+
+Both need the bot invited with slash commands and message permissions. If the bot was invited before these existed, re-invite it (it keeps its place, it just gets the new permissions):
+`https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=bot%20applications.commands&permissions=84992`
+(View Channels, Send Messages, Embed Links, Read Message History.)
 
 ## Running locally
 
