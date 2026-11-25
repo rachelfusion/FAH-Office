@@ -391,14 +391,46 @@ const CLIP=[new THREE.Plane(new THREE.Vector3(0,0,-1),16.25),new THREE.Plane(new
   fairy(Array.from({length:9},(_,k)=>{ const t=k/8; return [22.6,2.6-Math.sin(PI*t)*0.25,2.75+t*3.6]; }));
   fairy(Array.from({length:9},(_,k)=>{ const t=k/8; return [27.6,2.6-Math.sin(PI*t)*0.25,2.75+t*3.6]; }));
 
-  // shops across the road
-  building(31.3,33.0,2.9,0x23394a); pane(31.55,32.75,'#7fe9ff',.45); sign('boba','#b6f36a',32.15,2.5,1.2,0.3);
-  [31.85,32.15,32.45].forEach(x=>{ BB(x-0.06,2.645,x+0.06,2.66,0.9,1.15,0xf3e3c3,{r:0,cast:false}); BB(x-0.004,2.66,x+0.004,2.665,1.15,1.32,0xff5fa2,{r:0,cast:false}); });
-  building(33.2,34.9,3.1,0x2a2a38); pane(33.45,34.65,'#e8f4ff',.65); sign('24/7','#ff4d6d',34.05,2.62,1.0,0.25,'700 160px DM Sans, sans-serif');
-  [0.55,1.0,1.45].forEach((y,r)=>{ for(let k=0;k<7;k++) BB(33.55+k*0.15,2.645,33.65+k*0.15,2.66,y,y+0.22,[0xff5fa2,0xffd166,0x5ee7ff,0xb6f36a][(k+r)%4],{r:0,cast:false}); });
-  building(35.1,36.3,2.9,0x3a1f45); pane(35.3,36.1,'#ff5fa2',.5); sign('arcade','#a78bfa',35.7,2.5,1.1,0.27);
-  [35.5,35.9].forEach(x=>{ BB(x-0.13,2.645,x+0.13,2.66,0.3,1.4,0x1a0f24,{r:0,cast:false}); BB(x-0.09,2.66,x+0.09,2.665,1.0,1.25,0x5ee7ff,{em:1,r:0,cast:false}); });
-  plight(0x9fd8ff,1.1,7,33.8,1.8,3.9);
+  // shops across the road: open-top cutaways like the office, with a walk-in door
+  const shopGlass=new THREE.MeshLambertMaterial({color:0xbfefff,transparent:true,opacity:.16,depthWrite:false});
+  const shop=(x0,x1,o)=>{
+    const d0=x1-1.1, d1=x1-0.15, cx=(x0+x1)/2, dark=shade(o.wall,-.35);
+    BB(x0,0.02,x1,2.6,0,0.022,o.floor,{r:0,cast:false});
+    BB(x0,0.0,x1,0.06,0.02,3.0,o.wall,{r:0,cast:false,em:o.wallEm});
+    [x0,x1].forEach(x=>{ blockArea(x-0.05,0,x+0.05,2.6); BB(x-0.05,0,x+0.05,2.5,0,0.7,shade(o.wall,-.2),{r:0.02}); B(0.12,2.56,0.12,0x2a2236,x,1.28,2.56,scene,{r:0.02}); B(0.1,3.0,0.1,0x2a2236,x,1.5,0.05,scene,{r:0.02}); });
+    blockArea(x0,2.5,d0,2.66); BB(x0,2.52,d0,2.66,0,0.5,dark,{r:0.02});
+    const g=BB(x0+0.04,2.56,d0,2.62,0.5,2.2,0,{mat:shopGlass,r:0,cast:false,recv:false}); g.renderOrder=2;
+    BB(x0,2.52,d0,2.66,2.16,2.22,dark,{r:0});
+    blockArea(d1,2.5,x1,2.66);
+    [d0,d1].forEach(x=>B(0.07,2.2,0.14,0x2a2236,x,1.1,2.59,scene,{r:0.02}));
+    BB(x0-0.05,2.48,x1+0.05,2.72,2.2,2.56,o.band,{r:0.03});
+    const m=neon(o.name,o.neon,Math.min(1.4,(x1-x0)*0.75),0.3,o.font||'400 150px Pacifico, cursive'); m.position.set(cx,2.38,2.73); scene.add(m); glow(cx,2.38,2.95,o.neon,1.5,.22);
+    const aw=B(d0-x0,0.035,0.42,o.awning,(x0+d0)/2,2.1,2.86,scene,{r:0.01}); aw.rotation.x=-0.35;
+    glow(cx,1.9,1.2,o.neon,2.6,.22); sph(0.07,0xffffff,cx,2.5,1.3,scene,{em:1.2,cast:false,seg:8});
+    return {d0,d1};
+  };
+  // boba shop: counter, cups, menu board
+  shop(31.2,32.95,{floor:0x8a6a4e,wall:0x2f6f66,wallEm:.25,band:0x1d3b37,neon:'#b6f36a',awning:0xb6f36a,name:'boba'});
+  blockArea(31.4,0.45,32.7,0.95); BB(31.4,0.45,32.7,0.95,0,0.92,0xf4efe6,{r:0.04}); BB(31.36,0.42,32.74,0.98,0.92,0.98,0x5c3f35,{r:0.02});
+  [[31.6,0xf1dcb8],[31.8,0xff8fb1],[32.0,0xb6f36a],[32.45,0xf1dcb8]].forEach(([x,c])=>{ cyl(0.05,0.14,c,x,1.05,0.7,{r2:0.04}); cyl(0.007,0.1,0xff5fa2,x+0.01,1.15,0.7); });
+  B(0.22,0.16,0.18,0x2a2236,32.25,1.06,0.65,scene,{r:0.03});
+  BB(31.5,0.06,32.6,0.1,1.45,2.25,0x14100f,{r:0.02,cast:false});
+  [1.65,1.85,2.05].forEach((y,k)=>BB(31.6,0.1,31.6+0.5+k*0.15,0.11,y,y+0.05,[0xb6f36a,0xffd166,0xff8fb1][k],{em:.8,r:0,cast:false}));
+  [31.7,32.4].forEach(x=>{ sph(0.07,0xfff2d6,x,2.05,0.75,scene,{em:1.2,cast:false,seg:8}); glow(x,2.0,0.75,'#fff2d6',0.8,.35); });
+  SP.out.push({kind:'shop',approach:{x:32.25,z:1.5},pose:{x:32.25,y:0,z:1.45,rot:PI,anim:'browse'},icon:'🧋'});
+  // 24/7: glowing fridges and a snack shelf
+  shop(33.0,34.8,{floor:0xc9d0dc,wall:0x34405a,wallEm:.2,band:0x1a1f2e,neon:'#ff4d6d',awning:0xff4d6d,name:'24/7',font:'700 160px DM Sans, sans-serif'});
+  blockArea(33.12,0.06,34.68,0.6); BB(33.12,0.06,34.68,0.6,0,2.0,0x2a3040,{r:0.03});
+  [33.2,33.7,34.2].forEach((x,k)=>{ BB(x,0.6,x+0.44,0.63,0.15,1.85,0x9fe8ff,{em:.55,r:0,cast:false}); [0.5,0.95,1.4].forEach((y,r)=>{ for(let j=0;j<3;j++) BB(x+0.05+j*0.13,0.52,x+0.13+j*0.13,0.58,y,y+0.22,[0xff5fa2,0xffd166,0x7dffb2,0x5ee7ff][(j+k+r)%4],{r:0,cast:false}); }); });
+  blockArea(33.3,1.3,33.9,1.6); BB(33.3,1.3,33.9,1.6,0,1.05,0xe9e4da,{r:0.03});
+  [0.3,0.65].forEach((y,r)=>{ for(let j=0;j<4;j++){ const c=[0xff5fa2,0xffd166,0x5ee7ff,0xb6f36a][(j+r)%4]; BB(33.35+j*0.13,1.24,33.45+j*0.13,1.3,y,y+0.25,c,{r:0,cast:false}); BB(33.35+j*0.13,1.6,33.45+j*0.13,1.66,y,y+0.25,c,{r:0,cast:false}); } });
+  SP.out.push({kind:'shop',approach:{x:34.25,z:1.05},pose:{x:34.25,y:0,z:1.0,rot:PI,anim:'browse'},icon:'🥤'});
+  // arcade: two cabinets with glowing screens and a neon floor
+  shop(34.9,36.3,{floor:0x2a1838,wall:0x3a1f55,wallEm:.35,band:0x24123a,neon:'#a78bfa',awning:0xa78bfa,name:'arcade'});
+  [[35.25,0x5ee7ff],[35.75,0xff5fa2]].forEach(([x,c])=>{ blockArea(x-0.22,0.06,x+0.22,0.6); BB(x-0.22,0.06,x+0.22,0.6,0,1.55,0x15101f,{r:0.04}); BB(x-0.17,0.6,x+0.17,0.62,0.95,1.35,c,{em:1,r:0,cast:false}); BB(x-0.22,0.55,x+0.22,0.75,0.75,0.82,0x2a2236,{r:0.02}); sph(0.03,0xff4d6d,x-0.08,0.85,0.68,scene,{seg:6}); glow(x,1.15,0.9,c==0x5ee7ff?'#5ee7ff':'#ff5fa2',0.9,.45); });
+  [[35.1,1.2],[35.6,1.6],[36.0,1.0],[35.3,2.1]].forEach(([x,z],k)=>BB(x,z,x+0.4,z+0.4,0.022,0.026,[0xff5fa2,0x5ee7ff,0xa78bfa,0xb6f36a][k],{em:.6,r:0,cast:false}));
+  [35.25,35.75].forEach(x=>SP.out.push({kind:'shop',approach:{x,z:1.25},pose:{x,y:0,z:1.2,rot:PI,anim:'arcade'},icon:'🕹️'}));
+  plight(0xcfe8ff,1.6,6.5,33.8,2.4,1.5);
 
   // street lamps, trees, benches, little details
   const lamp=(x,z,light)=>{ blockArea(x-0.12,z-0.12,x+0.12,z+0.12); cyl(0.05,2.8,0x2a2236,x,1.4,z); cyl(0.11,0.08,0x2a2236,x,0.04,z); sph(0.14,0xffe2b0,x,2.85,z,scene,{em:1.3,cast:false}); glow(x,2.8,z,'#ffcf9e',1.8,.5); if(light) plight(0xffcf9e,1.35,8,x,2.6,z); };
@@ -409,7 +441,7 @@ const CLIP=[new THREE.Plane(new THREE.Vector3(0,0,-1),16.25),new THREE.Plane(new
   const bench=(x0,z,seats)=>{ BB(x0,z-0.25,x0+1.6,z+0.22,0.42,0.5,0x9c6b43,{r:0.03}); BB(x0,z-0.33,x0+1.6,z-0.25,0.5,0.95,0x9c6b43,{r:0.03}); [x0+0.12,x0+1.48].forEach(x=>BB(x-0.04,z-0.25,x+0.04,z+0.2,0,0.42,0x2a2236,{r:0}));
     seats.forEach(sx=>SP.out.push({kind:'bench',approach:{x:sx,z:z+0.55},pose:{x:sx,y:0.22,z,rot:0,anim:'bench'}})); };
   bench(23.8,13.6,[24.2,25.0]); bench(32.3,12.6,[32.7,33.5]); bench(34.5,12.6,[34.9,35.7]);
-  [[24.45,'café'],[32.15,'boba'],[34.05,'24/7'],[35.7,'arcade']].forEach(([x])=>SP.out.push({kind:'window',approach:{x,z:3.25},pose:{x,y:0,z:3.2,rot:PI,anim:'browse'}}));
+  SP.out.push({kind:'window',approach:{x:24.45,z:3.25},pose:{x:24.45,y:0,z:3.2,rot:PI,anim:'browse'}});
   cyl(0.1,0.42,0xe5484d,27.55,0.21,10.4); sph(0.1,0xe5484d,27.55,0.43,10.4,scene,{seg:8});
   cyl(0.18,0.55,0x3a3f4a,31.45,0.28,11.2,{r2:0.15}); plant(27.5,6.0,0.7);
 
@@ -562,8 +594,8 @@ function loungeFor(){ const f=free(SP.lounge); return f[Math.floor(Math.random()
 function lerpAng(a,b,t){ const d=((b-a+PI)%(2*PI)+2*PI)%(2*PI)-PI; return a+d*t; }
 
 function meetingSeatFor(ch){ const f=free(SP.meeting); return f[0]||SP.meeting[0]; }
-const ACTS=[['working','💻','working'],['cafe','☕','café'],['gaming','🎮','gaming'],['meeting','🤝','meeting'],['eating','🍜','eating'],['phone','📱','phone'],['out','🛍️','out']];
-const ACT_ICON={working:'💻',cafe:'☕',gaming:'🎮',meeting:'🤝',eating:'🍜',phone:'📱',out:'🛍️',offline:'💤'};
+const ACTS=[['working','💻','working'],['cafe','☕','outside'],['gaming','🎮','gaming'],['meeting','🤝','meeting'],['eating','🍜','eating'],['phone','📱','phone'],['out','🙏','hiding']];
+const ACT_ICON={working:'💻',cafe:'☕',gaming:'🎮',meeting:'🤝',eating:'🍜',phone:'📱',out:'🙏',offline:'💤'};
 const ACT_ANIM={gaming:'game',eating:'eat',phone:'phone',cafe:'cafe'};
 function firstFree(lists){ for(const l of lists){ const f=free(l); if(f.length) return f[0]; } return lists[0][0]; }
 function spotFor(ch,st){
@@ -651,6 +683,7 @@ function animPerson(ch,t,force){
     if(sip){ P.armR.rotation.x=-2.0; P.armR.rotation.z=.2; P.mug.visible=true; P.armL.rotation.x=-1.25; P.head.rotation.x=-.15; }
     else { P.armL.rotation.x=-1.25+Math.sin(t*16+ph)*.07; P.armR.rotation.x=-1.25+Math.sin(t*16+ph+1.6)*.07; P.head.rotation.x=.12; } }
   else if(a==='browse'){ const sip=Math.sin(t*.9+ph)>.75; P.armR.rotation.x=sip?-2.0:-0.75; P.armR.rotation.z=sip?.2:.05; P.head.rotation.y=Math.sin(t*.6+ph)*.45; P.head.rotation.x=-.06; }
+  else if(a==='arcade'){ const j=Math.sin(t*20+ph)*.06; P.armR.rotation.x=-1.25+j; P.armL.rotation.x=-1.25-j; P.armR.rotation.z=.15; P.armL.rotation.z=-.15; P.head.rotation.x=-.08; P.body.position.y=Math.sin(t*2.5+ph)>.9?.03:0; P.torso.rotation.z=Math.sin(t*1.9+ph)*.06; }
   else if(a==='bench'){ sit(); const sip=Math.sin(t*.8+ph)>.75; P.armR.rotation.x=sip?-2.0:-0.6; P.armL.rotation.x=-0.3; P.armL.rotation.z=-.3; P.head.rotation.y=Math.sin(t*.4+ph)*.5; }
   else if(a==='game'){ sit(); const j=Math.sin(t*22+ph)*.05; P.armR.rotation.x=-1.15+j; P.armL.rotation.x=-1.15-j; P.armR.rotation.z=.42; P.armL.rotation.z=-.42; P.pad.visible=true;
     P.head.rotation.x=.12; P.torso.rotation.z=Math.sin(t*1.7+ph)>.8? .12 : Math.sin(t*1.7+ph)<-.8? -.12 : 0; P.body.position.y=Math.sin(t*3+ph)>.95?.03:0; }
@@ -703,6 +736,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 function iconFor(ch){
   if(ch.kind==='bot') return ch.path.length?'':(ch.state==='off'?'🔌':ch.playing?'🎶':'🎛️');
   if(!ch.posed) return '';
+  if(ch.kind==='person'&&ch.state==='out'&&ch.spot.icon) return ch.spot.icon;
   if(ch.kind==='person'&&ch.state!=='working') return ACT_ICON[ch.state]||'';
   if(ch.spot.icon) return ch.spot.icon;
   return {sleep:'💤',type:'💻',phone:'📱',listen:'🤝'}[ch.spot.pose.anim]||'';
@@ -796,14 +830,14 @@ const vb=(ch,s3,base)=>ch.e.name==='You'?base:s3;
 function logState(ch,a,b){
   const n=ch.e.name;
   if(b==='offline') return log('voiceStateUpdate',`${n} left 🔊 Office`,`${n} ${vb(ch,'logs','log')} off and ${vb(ch,'goes','go')} to bed`);
-  const what={working:[`${vb(ch,'locks','lock')} in at the big table`],gaming:[`${vb(ch,'grabs','grab')} a controller on the couch`],meeting:[`${vb(ch,'heads','head')} into a meeting with Simon`],eating:[`${vb(ch,'gets','get')} a bowl of ramen at the bar`],cafe:[`${vb(ch,'heads','head')} out to work from Moon Café`],out:[`${vb(ch,'heads','head')} out to the shops`],phone:[`${vb(ch,'flops','flop')} onto a beanbag to scroll`]}[b];
+  const what={working:[`${vb(ch,'locks','lock')} in at the big table`],gaming:[`${vb(ch,'grabs','grab')} a controller on the couch`],meeting:[`${vb(ch,'heads','head')} into a meeting with Simon`],eating:[`${vb(ch,'gets','get')} a bowl of ramen at the bar`],cafe:[`${vb(ch,'heads','head')} outside to work from Moon Café`],out:[`${vb(ch,'sneaks','sneak')} outside, praying Simon doesn't find ${ch.e.name==='You'?'you':'them'}`],phone:[`${vb(ch,'flops','flop')} onto a beanbag to scroll`]}[b];
   if(!what) return;
   if(a==='offline') return log('voiceStateUpdate',`${n} joined 🔊 Office`,`${n} ${vb(ch,'wakes','wake')} up and ${what[0]}`);
   return log('activity',`${n} → ${b}`,`${n} ${what[0]}`);
 }
 function rowSub(ch){
   if(ch.kind==='bot') return ch.state==='off'?'not in the call · charging':ch.playing?`in call · playing ${ch.e.song}`:'in call · on the decks';
-  const sub={offline:'not in the call · sleeping',working:'locked in at the big table',gaming:'gaming on the couch',meeting:'in a meeting with Simon',eating:'eating ramen at the bar',phone:'scrolling on a beanbag',cafe:'working from Moon Café',out:'out at the shops'}[ch.state]||'';
+  const sub={offline:'not in the call · sleeping',working:'locked in at the big table',gaming:'gaming on the couch',meeting:'in a meeting with Simon',eating:'eating ramen at the bar',phone:'scrolling on a beanbag',cafe:'working outside at Moon Café',out:`outside, praying Simon doesn't find ${ch.e.me?'you':'them'}`}[ch.state]||'';
   return ch.live&&ch.live.deafened&&ch.state!=='offline' ? sub+' · deafened' : sub;
 }
 function renderRows(){
