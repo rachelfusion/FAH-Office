@@ -11,10 +11,10 @@ test('people outside the channel are asleep', () => {
   assert.equal(memberState({ channelId: '999' }, CH), 'offline');
 });
 
-test('people in the channel are working, deafened ones are afk', () => {
+test('people in the channel are working, deafened ones are in a meeting', () => {
   assert.equal(memberState({ channelId: CH, selfDeaf: false, serverDeaf: false }, CH), 'working');
-  assert.equal(memberState({ channelId: CH, selfDeaf: true, serverDeaf: false }, CH), 'afk');
-  assert.equal(memberState({ channelId: CH, selfDeaf: false, serverDeaf: true }, CH), 'afk');
+  assert.equal(memberState({ channelId: CH, selfDeaf: true, serverDeaf: false }, CH), 'meeting');
+  assert.equal(memberState({ channelId: CH, selfDeaf: false, serverDeaf: true }, CH), 'meeting');
 });
 
 test('music bots are on only inside the channel', () => {

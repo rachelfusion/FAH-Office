@@ -260,7 +260,55 @@ for(let k=0;k<5;k++) DYN.discoGlints.push(glow(17.6,2.85,12.9,['#ff5fa2','#5ee7f
 
 function plant(x,z,s=1){ blockArea(x-0.3*s,z-0.3*s,x+0.3*s,z+0.3*s); cyl(0.22*s,0.42*s,0xe8e2f2,x,0.21*s,z,{r2:0.16*s});
   [[0,0.75,0,.3,0x2f8f5b],[.17,.6,.1,.22,0x3fae6e],[-.16,.62,-.06,.22,0x2f8f5b],[.05,1.0,-.05,.2,0x4cc27f],[-.08,.9,.14,.17,0x3fae6e]].forEach(([dx,dy,dz,r,c])=>{ const m=sph(r*s,c,x+dx*s,dy*s,z+dz*s); m.scale.set(1,0.75,1); }); }
-plant(6.3,0.6,1.1); plant(14.9,0.6); plant(0.7,15.3,1.3); plant(21.4,9.4); plant(6.4,15.3); plant(4.05,0.55,0.8); plant(8.6,9.4,0.9);
+plant(6.3,0.6,1.1); plant(14.9,0.6); plant(0.7,15.3,1.3); plant(21.4,9.4); plant(4.8,15.3); plant(4.05,0.55,0.8); plant(8.6,9.4,0.9);
+
+// meeting room with Simon: glass walls, oval table, presentation screen
+SP.meeting=[];
+const MEET={};
+{
+  rug(5.6,10.3,12.4,15.7,0.6,0x1e2a4a);
+  const glassMat=new THREE.MeshLambertMaterial({color:0x9fe8ff,transparent:true,opacity:.13,depthWrite:false});
+  const glassWall=(x0,z0,x1,z1)=>{ blockArea(x0,z0,x1,z1); const m=BB(x0,z0,x1,z1,0.05,1.6,0,{mat:glassMat,r:0,cast:false,recv:false}); m.renderOrder=2; };
+  glassWall(5.45,10.15,10.8,10.25);           // back wall (door gap on the right)
+  glassWall(5.45,10.15,5.55,15.7);            // left wall
+  glassWall(12.45,10.15,12.55,15.7);          // right wall (lounge side)
+  [[5.5,10.2],[8.1,10.2],[10.8,10.2],[12.5,10.2],[5.5,12.95],[5.5,15.7],[12.5,12.95],[12.5,15.7]].forEach(([x,z])=>B(0.1,1.7,0.1,C.trim,x,0.85,z,scene,{r:0.03}));
+  BB(5.45,10.16,10.8,10.24,1.6,1.66,0x5ee7ff,{em:1,r:0,cast:false}); BB(5.46,10.2,5.54,15.7,1.6,1.66,0x5ee7ff,{em:1,r:0,cast:false}); BB(12.46,10.2,12.54,15.7,1.6,1.66,0x5ee7ff,{em:1,r:0,cast:false});
+  B(2.9,0.62,0.05,0x120d1e,8.15,2.05,10.2,scene,{r:0.03,cast:false});
+  const ns=neon('meeting w/ simon','#5ee7ff',2.8,0.7,'400 120px Pacifico, cursive'); ns.position.set(8.15,2.05,10.24); scene.add(ns); glow(8.15,2.05,10.5,'#5ee7ff',3.2,.22);
+  MEET.sign=neon('in meeting','#ff4d6d',1.3,0.33,'700 150px DM Sans, sans-serif'); MEET.sign.position.set(11.65,1.9,10.22); scene.add(MEET.sign); MEET.sign.material.opacity=.15;
+  MEET.signGlow=glow(11.65,1.9,10.4,'#ff4d6d',1.4,0);
+  // oval table
+  blockArea(7.2,12.2,10.8,13.8);
+  const top=cyl(1,0.1,0,9,0.75,13,{mat:M(0x5a3d33),seg:40}); top.scale.set(1.8,1,0.8);
+  [7.9,10.1].forEach(x=>cyl(0.09,0.7,C.woodD,x,0.35,13)); cyl(0.12,0.05,0x222222,9,0.82,13);
+  [[7.9,12.55],[9,12.55],[10.1,12.55],[7.9,13.45],[9,13.45],[10.1,13.45]].forEach(([x,z])=>B(0.22,0.012,0.3,0xf4f2f8,x,0.806,z,scene,{r:0,cast:false}));
+  cyl(0.06,0.12,0xffffff,8.4,0.86,12.75); cyl(0.06,0.12,0x5ee7ff,9.7,0.86,13.3);
+  // chairs: 3 facing the camera side, 3 facing away
+  const mchair=(x,z,rot,c)=>{ const back=rot===0?-1:1; B(0.56,0.1,0.54,C.dark,x,0.4,z,scene,{r:0.05}); B(0.56,0.62,0.1,c,x,0.78,z+back*0.27,scene,{r:0.05}); cyl(0.04,0.34,0x444444,x,0.17,z); cyl(0.24,0.04,0x333333,x,0.03,z); };
+  [[7.8,11.5,0],[9,11.5,0],[10.2,11.5,0],[9,14.5,PI],[7.8,14.5,PI],[10.2,14.5,PI]].forEach(([x,z,rot],i)=>{ mchair(x,z,rot,0x6c7bff); SP.meeting.push({kind:'meeting',i,approach:{x,z},pose:{x,y:0.18,z,rot,anim:'listen'},icon:'🤝'}); });
+  // Simon's head chair + laptop, and the presentation screen
+  B(0.54,0.1,0.56,C.dark,6.55,0.4,13,scene,{r:0.05}); B(0.1,0.7,0.56,0xff5fa2,6.27,0.82,13,scene,{r:0.05}); cyl(0.04,0.34,0x444444,6.55,0.17,13);
+  B(0.36,0.03,0.5,0xc9cbe0,7.45,0.815,13,scene,{r:0.012}); B(0.03,0.32,0.5,0xc9cbe0,7.62,0.98,13,scene,{r:0.012});
+  blockArea(5.75,12.4,5.95,13.6);
+  cyl(0.04,1.0,0x333333,5.85,0.5,13); B(0.5,0.04,0.5,0x333333,5.85,0.02,13,scene,{r:0.02});
+  B(0.08,0.85,1.3,0x111111,5.85,1.45,13,scene,{r:0.03});
+  const sc=document.createElement('canvas'); sc.width=512; sc.height=340; const sx=sc.getContext('2d');
+  sx.fillStyle='#14102a'; sx.fillRect(0,0,512,340); sx.fillStyle='#f2edff'; sx.font='700 34px DM Sans, sans-serif'; sx.fillText('Q4 vibe check',28,52);
+  [['#ff5fa2',150],['#a78bfa',210],['#5ee7ff',120],['#b6f36a',250],['#ffd166',190]].forEach(([c,h],k)=>{ sx.fillStyle=c; sx.fillRect(40+k*90,300-h,56,h); });
+  sx.strokeStyle='#ffffff'; sx.lineWidth=3; sx.beginPath(); sx.moveTo(30,302); sx.lineTo(490,302); sx.stroke();
+  MEET.screen=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sc),color:0x2a2a3a});
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.78),MEET.screen); scr.rotation.y=PI/2; scr.position.set(5.9,1.45,13); scene.add(scr);
+  MEET.screenGlow=glow(6.2,1.45,13,'#a78bfa',1.6,0);
+  MEET.light=plight(0x9fd0ff,0.25,7,9,2.3,13);
+  MEET.present={kind:'simon',approach:{x:6.35,z:12.05},pose:{x:6.35,y:0,z:12.05,rot:PI/2,anim:'present'},icon:'📊'};
+  MEET.idle={kind:'simon',approach:{x:6.75,z:13.0},pose:{x:6.62,y:0.18,z:13.0,rot:PI/2,anim:'type'},icon:'💼'};
+}
+function setMeetingVisuals(on){
+  MEET.sign.material.opacity=on?1:.15; MEET.signGlow.material.opacity=on?.5:0;
+  MEET.screen.color.setHex(on?0xffffff:0x2a2a3a); MEET.screenGlow.material.opacity=on?.35:0;
+  MEET.light.intensity=on?1.2:0.25;
+}
 
 /* ============================ characters (soft, rounded) ============================ */
 function hairParts(g,L){
@@ -333,13 +381,15 @@ function disposeGroup(g){ g.traverse(o=>{ if(o.geometry&&!o.geometry.userData.ca
 
 const labelsBox=$('labels');
 const CH=[];
-function makeChar(e,kind){
+const NPCS=[];
+const ALL=()=>CH.concat(NPCS);
+function makeChar(e,kind,list=CH){
   const ch={id:e.id,kind,e,g:new THREE.Group(),path:[],spot:null,posed:false,glide:null,state:kind==='bot'?'off':'offline',anim:'stand',phase:rand(0,6),timer:rand(8,20),speaking:false,playing:false,pop:null,popT:0,lblKey:''};
   scene.add(ch.g);
   const ring=new THREE.Mesh(new THREE.RingGeometry(0.36,0.47,32),new THREE.MeshBasicMaterial({color:0xb6f36a,transparent:true,opacity:.85,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));
   ring.rotation.x=-PI/2; ring.position.y=0.04; ring.visible=false; ch.g.add(ring); ch.ring=ring;
   ch.lbl=document.createElement('div'); ch.lbl.className='lbl'+(e.me?' me':''); labelsBox.appendChild(ch.lbl);
-  rebuild(ch); CH.push(ch); return ch;
+  rebuild(ch); list.push(ch); return ch;
 }
 function rebuild(ch){
   if(ch.P){ ch.g.remove(ch.P.body); disposeGroup(ch.P.body); }
@@ -378,11 +428,13 @@ function seatFor(ch){ const pref=SP.seats[ch.e.seat]; return (!pref.by||pref.by=
 function loungeFor(){ const f=free(SP.lounge); return f[Math.floor(Math.random()*f.length)]||SP.lounge[0]; }
 function lerpAng(a,b,t){ const d=((b-a+PI)%(2*PI)+2*PI)%(2*PI)-PI; return a+d*t; }
 
+function meetingSeatFor(ch){ const f=free(SP.meeting); return f[0]||SP.meeting[0]; }
 function setState(ch,st,{instant=false,quiet=false}={}){
+  if(st==='afk') st='meeting'; // older bot versions call it afk
   const prev=ch.state; if(prev===st&&!instant) return;
   ch.state=st; ch.timer=rand(10,22); ch.speaking=false;
-  const target= st==='offline'? SP.beds[ch.e.bed] : st==='working'? seatFor(ch) : loungeFor();
-  if(instant) placeAt(ch,target); else { goTo(ch,target); ch.pop={offline:'😴',working:'⚡',afk:'📱'}[st]; ch.popT=2.4; }
+  const target= st==='offline'? SP.beds[ch.e.bed] : st==='working'? seatFor(ch) : meetingSeatFor(ch);
+  if(instant) placeAt(ch,target); else { goTo(ch,target); ch.pop={offline:'😴',working:'⚡',meeting:'🤝'}[st]; ch.popT=2.4; }
   if(!quiet) logState(ch,prev,st);
   renderRows();
 }
@@ -403,17 +455,25 @@ function setPlaying(ch,v,{quiet=false}={}){
   renderRows();
 }
 
+let meetingOn=null;
+function updateMeeting(instant){
+  const simon=NPCS[0]; if(!simon) return;
+  const on=CH.some(c=>c.kind==='person'&&c.state==='meeting');
+  if(on===meetingOn&&!instant) return;
+  meetingOn=on; setMeetingVisuals(on);
+  const spot=on?MEET.present:MEET.idle;
+  if(instant) placeAt(simon,spot); else { goTo(simon,spot); simon.pop=on?'👋':'☕'; simon.popT=2.4; }
+  simon.speaking=false;
+}
 function aiTick(ch,dt){
+  if(ch.kind==='npc'){ ch.speaking= ch.posed&&ch.spot===MEET.present; return; }
   if(ch.kind!=='person'||!ch.posed) return;
   ch.timer-=dt; if(ch.timer>0) return;
   if(ch.state==='working'){
     if(ch.spot.kind==='seat'){
-      if(Math.random()<.5){ const f=free(SP.extras); if(f.length){ goTo(ch,f[Math.floor(Math.random()*f.length)]); ch.timer=rand(5,8); return; } }
+      if(Math.random()<.5){ const f=free(SP.extras.concat(SP.lounge)); if(f.length){ goTo(ch,f[Math.floor(Math.random()*f.length)]); ch.timer=rand(5,8); return; } }
       ch.timer=rand(14,28);
     } else { goTo(ch,seatFor(ch)); ch.timer=rand(16,30); }
-  } else if(ch.state==='afk'){
-    if(Math.random()<.3){ const f=free(SP.lounge); if(f.length) goTo(ch,f[Math.floor(Math.random()*f.length)]); }
-    ch.timer=rand(20,35);
   } else ch.timer=30;
 }
 
@@ -434,6 +494,10 @@ function animPerson(ch,t,force){
   else if(a==='sleep'){ P.torso.rotation.x=Math.sin(t*1.5+ph)*.025; P.head.rotation.y=Math.sin(t*.3+ph)*.1; }
   else if(a==='mug'){ const sip=Math.sin(t*1.1+ph)>.75; P.armR.rotation.x=sip?-2.1:-1.0; P.head.rotation.x=sip?-.25:0; P.mug.visible=true; }
   else if(a==='board'){ P.armR.rotation.x=-2.4+Math.sin(t*5)*.18; P.armR.rotation.z=Math.sin(t*3)*.25; P.head.rotation.x=-.1; }
+  else if(a==='listen'){ sit(); P.armL.rotation.x=-1.0; P.armR.rotation.x=-1.0; P.armL.rotation.z=.25; P.armR.rotation.z=-.25;
+    P.head.rotation.x= Math.sin(t*1.3+ph)>.85 ? .18 : .02; P.head.rotation.y= Math.sin(t*.35+ph)*.35; }
+  else if(a==='present'){ P.armL.rotation.z=-1.25+Math.sin(t*2.2)*.2; P.armL.rotation.x=-.2; P.armR.rotation.x=-.5+Math.sin(t*3.1)*.35; P.armR.rotation.z=.15;
+    P.head.rotation.y=Math.sin(t*.8)*.35; P.head.rotation.x=Math.sin(t*6)*.04; P.body.position.y=Math.abs(Math.sin(t*1.6))*.015; }
   else if(a==='wave'){ P.armR.rotation.z=2.5+Math.sin(t*8)*.35; P.head.rotation.z=Math.sin(t*2)*.08; P.body.position.y=Math.abs(Math.sin(t*4))*.03; }
   else if(a==='vibe'){ P.body.position.y=Math.abs(Math.sin(t*4))*.04; P.head.rotation.z=Math.sin(t*4)*.12; P.armL.rotation.z=-.25-Math.abs(Math.sin(t*4))*.2; P.armR.rotation.z=.25+Math.abs(Math.sin(t*4))*.2; }
   else { P.torso.rotation.z=Math.sin(t*1.4+ph)*.025; P.head.rotation.y=Math.sin(t*.5+ph)*.3; }
@@ -477,10 +541,10 @@ function iconFor(ch){
   if(ch.kind==='bot') return ch.path.length?'':(ch.state==='off'?'🔌':ch.playing?'🎶':'🎛️');
   if(!ch.posed) return '';
   if(ch.spot.icon) return ch.spot.icon;
-  return {sleep:'💤',type:'💻',phone:'📱'}[ch.spot.pose.anim]||'';
+  return {sleep:'💤',type:'💻',phone:'📱',listen:'🤝'}[ch.spot.pose.anim]||'';
 }
 function updateLabels(dt){
-  CH.forEach(ch=>{
+  ALL().forEach(ch=>{
     const sleeping= ch.kind==='person'&&ch.posed&&ch.spot&&ch.spot.pose.anim==='sleep';
     const p=ch.g.position;
     const [x,y]= sleeping? screenPos(p.x-1.05,1.45,p.z) : screenPos(p.x,p.y+(ch.kind==='bot'?1.8:1.85),p.z);
@@ -489,7 +553,7 @@ function updateLabels(dt){
     const ic=iconFor(ch);
     const key=[ch.e.name,ch.speaking,ic,sleeping,ch.pop].join('|');
     if(key!==ch.lblKey){ ch.lblKey=key;
-      ch.lbl.innerHTML=`${ch.speaking?'<i class="sp"></i>':''}${ch.kind==='bot'?'<span class="bt">BOT</span>':''}${esc(ch.e.name)}${ic?' '+ic:''}${sleeping?'<span class="zzz"><b>z</b><i>z</i><u>Z</u></span>':''}${ch.pop?`<span class="pop">${ch.pop}</span>`:''}`; }
+      ch.lbl.innerHTML=`${ch.speaking?'<i class="sp"></i>':''}${ch.kind==='bot'?'<span class="bt">BOT</span>':ch.kind==='npc'?'<span class="bt npc">NPC</span>':''}${esc(ch.e.name)}${ic?' '+ic:''}${sleeping?'<span class="zzz"><b>z</b><i>z</i><u>Z</u></span>':''}${ch.pop?`<span class="pop">${ch.pop}</span>`:''}`; }
   });
   ZONES.forEach(z=>{ const [x,y]=screenPos(z.x,0.05,z.z); z.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%)`; });
 }
@@ -547,13 +611,13 @@ function logState(ch,a,b){
   const n=ch.e.name;
   if(b==='offline') return log('voiceStateUpdate',`${n} left 🔊 Office`,`${n} ${vb(ch,'logs','log')} off and ${vb(ch,'goes','go')} to bed`);
   if(a==='offline'&&b==='working') return log('voiceStateUpdate',`${n} joined 🔊 Office`,`${n} ${vb(ch,'wakes','wake')} up and ${vb(ch,'locks','lock')} in at the big table`);
-  if(a==='offline'&&b==='afk') return log('voiceStateUpdate',`${n} joined 🔊 Office, deafened`,`${n} ${vb(ch,'rolls','roll')} out of bed straight onto the couch`);
-  if(b==='afk') return log('voiceStateUpdate',`${n} deafened`,`${n} ${vb(ch,'goes','go')} afk to doomscroll on the couch`);
-  if(b==='working') return log('voiceStateUpdate',`${n} undeafened`,`${n} ${vb(ch,'heads','head')} back and ${vb(ch,'locks','lock')} in`);
+  if(a==='offline'&&b==='meeting') return log('voiceStateUpdate',`${n} joined 🔊 Office, deafened`,`${n} ${vb(ch,'rolls','roll')} out of bed straight into a meeting with Simon`);
+  if(b==='meeting') return log('voiceStateUpdate',`${n} deafened`,`${n} ${vb(ch,'heads','head')} into a meeting with Simon`);
+  if(b==='working') return log('voiceStateUpdate',`${n} undeafened`,`${n} ${vb(ch,'leaves','leave')} the meeting and ${vb(ch,'locks','lock')} back in`);
 }
 function rowSub(ch){
   if(ch.kind==='bot') return ch.state==='off'?'not in the call · charging':ch.playing?`in call · playing ${ch.e.song}`:'in call · on the decks';
-  return {offline:'not in the call · sleeping',working:'in the call · locked in',afk:'deafened · doomscrolling'}[ch.state];
+  return {offline:'not in the call · sleeping',working:'in the call · locked in',meeting:'deafened · in a meeting with Simon'}[ch.state];
 }
 function renderRows(){
   const box=$('rows'); box.innerHTML='';
@@ -567,14 +631,14 @@ function renderRows(){
     const live=MODE==='live';
     if(!live || (ch.kind==='person'&&ch.e.me)) r.appendChild(b); else r.appendChild(document.createElement('span'));
     const seg=document.createElement('div'); seg.className='seg'+(ch.kind==='bot'?' two':''); seg.setAttribute('role','group'); seg.setAttribute('aria-label',`${ch.e.name} status`);
-    const opts= ch.kind==='bot'? [['off','🔌 not in call'],['on','🎛️ in call']] : [['offline','💤 asleep'],['working','💻 locked in'],['afk','📱 afk']];
+    const opts= ch.kind==='bot'? [['off','🔌 not in call'],['on','🎛️ in call']] : [['offline','💤 asleep'],['working','💻 locked in'],['meeting','🤝 w/ simon']];
     opts.forEach(([s,l])=>{ const o=document.createElement('button'); o.dataset.s=s; o.textContent=l; o.setAttribute('aria-pressed',ch.state===s);
       if(live){ o.disabled=true; o.title='Set by Discord'; }
       else o.onclick=()=>{ ch.kind==='bot'? setBot(ch,s==='on') : setState(ch,s); }; seg.appendChild(o); });
     r.appendChild(seg); box.appendChild(r);
   });
   const c=s=>CH.filter(x=>x.kind==='person'&&x.state===s).length, bots=CH.filter(x=>x.kind==='bot'&&x.state==='on').length;
-  $('counts').innerHTML=`<b>${c('working')}</b> locked in · <b>${c('afk')}</b> afk · <b>${c('offline')}</b> asleep · <b>${bots}</b> ${bots===1?'bot':'bots'} in call`;
+  $('counts').innerHTML=`<b>${c('working')}</b> locked in · <b>${c('meeting')}</b> with Simon · <b>${c('offline')}</b> asleep · <b>${bots}</b> ${bots===1?'bot':'bots'} in call`;
 }
 let demoTimers=[];
 $('demo').onclick=()=>{
@@ -583,7 +647,7 @@ $('demo').onclick=()=>{
   $('log').innerHTML=''; log('demo','lights out, nobody in the call yet'); renderRows();
   const P=id=>byId(id);
   [[600,()=>setState(P('mia'),'working')],[2200,()=>setState(P('dan'),'working')],[3800,()=>setBot(P('dj'),true)],[6200,()=>setPlaying(P('dj'),true)],
-   [7400,()=>setState(P('you'),'working')],[11000,()=>setState(P('dan'),'afk')],[13000,()=>setState(P('zee'),'working')],[19000,()=>setState(P('dan'),'working')],[24000,()=>setState(P('mia'),'offline')]]
+   [7400,()=>setState(P('you'),'working')],[11000,()=>setState(P('dan'),'meeting')],[13000,()=>setState(P('zee'),'working')],[19000,()=>setState(P('dan'),'working')],[24000,()=>setState(P('mia'),'offline')]]
    .forEach(([ms,fn])=>demoTimers.push(setTimeout(fn,ms)));
 };
 $('allSleep').onclick=()=>{ demoTimers.forEach(clearTimeout); demoTimers=[]; CH.forEach(ch=>{ if(ch.kind==='bot') setBot(ch,false); else setState(ch,'offline'); }); };
@@ -670,7 +734,7 @@ $('mSave').onclick=()=>{
 
 /* ============================ main loop & start ============================ */
 let last=performance.now(), TT=0;
-function tick(dt){ TT+=dt; CH.forEach(ch=>{ moveChar(ch,dt); aiTick(ch,dt); ch.kind==='bot'?animBot(ch,TT):animPerson(ch,TT); }); ambient(dt,TT);
+function tick(dt){ TT+=dt; updateMeeting(); ALL().forEach(ch=>{ moveChar(ch,dt); aiTick(ch,dt); ch.kind==='bot'?animBot(ch,TT):animPerson(ch,TT); }); ambient(dt,TT);
   DYN.docks.forEach((m,i)=>{ const b=BOTS[i]&&byId(BOTS[i].id); m.emissiveIntensity= b&&b.state==='off'&&!b.path.length? .4+Math.sin(TT*3)*.3 : .1; }); }
 function frame(now){
   const dt=Math.min(.05,Math.max(0,(now-last)/1000)); last=now;
@@ -690,7 +754,7 @@ function clearRoster(){
   demoTimers.forEach(clearTimeout); demoTimers=[];
   CH.forEach(ch=>{ unpose(ch); scene.remove(ch.g); disposeGroup(ch.P.body); ch.lbl.remove(); });
   CH.length=0;
-  [...SP.beds,...SP.seats,...SP.lounge,...SP.extras].forEach(s=>s.by=null);
+  [...SP.beds,...SP.seats,...SP.lounge,...SP.extras,...SP.meeting].forEach(s=>s.by=null);
   DYN.blankets.forEach(b=>b.material.color.setHex(0x8f86a8));
 }
 function setRoster(people,bots){
@@ -748,12 +812,14 @@ window.Office=API;
 
 PEOPLE.forEach(p=>makeChar(p,'person'));
 BOTS.forEach(b=>makeChar(b,'bot'));
+makeChar({id:'simon',name:'Simon',look:{skin:'#f1c27d',hairStyle:'short',hair:'#5a4636',topStyle:'hoodie',top:'#2b2438',pants:'#3d405b',hat:'none',hatColor:'#ffd166',glasses:'round'}},'npc',NPCS);
 resize();
-const S0={you:'offline',mia:'working',dan:'working',zee:'afk'};
+const S0={you:'offline',mia:'working',dan:'working',zee:'meeting'};
 CH.forEach(ch=>{ if(ch.kind==='person') setState(ch,S0[ch.id],{instant:true,quiet:true}); else setBot(ch,ch.id==='dj',{instant:true,quiet:true}); });
 setPlaying(byId('dj'),true,{quiet:true});
+updateMeeting(true);
 log('ready','watching 🔊 Office in The Crew');
-log('voiceStateUpdate','Mia and Dan are in the call, Zee is deafened, DJ Bot is playing','placed at the table, couch and decks');
+log('voiceStateUpdate','Mia and Dan are in the call, Zee is deafened, DJ Bot is playing','placed at the table, in the meeting with Simon, and at the decks');
 renderRows();
 requestAnimationFrame(frame);
 })();

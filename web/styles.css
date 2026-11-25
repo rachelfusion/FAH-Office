@@ -62,7 +62,7 @@ header p{margin:6px 0 0;color:var(--muted);max-width:60ch}
 .seg button{font:inherit;font-size:12.5px;font-weight:600;border:0;background:transparent;color:var(--muted);border-radius:999px;padding:6px 4px;cursor:pointer;white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--fg)}
 .seg button[data-s="working"][aria-pressed="true"],.seg button[data-s="on"][aria-pressed="true"]{background:var(--cyan);color:#06222a;box-shadow:0 0 14px rgba(94,231,255,.35)}
-.seg button[data-s="afk"][aria-pressed="true"]{background:var(--pink);color:#2a0716;box-shadow:0 0 14px rgba(255,95,162,.35)}
+.seg button[data-s="meeting"][aria-pressed="true"]{background:var(--pink);color:#2a0716;box-shadow:0 0 14px rgba(255,95,162,.35)}
 .seg button[data-s="offline"][aria-pressed="true"],.seg button[data-s="off"][aria-pressed="true"]{background:var(--purple);color:#170f26}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .btn{font:inherit;font-weight:600;font-size:13px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:999px;padding:8px 14px;cursor:pointer}
@@ -111,3 +111,4 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-o
 .mode-chip.live{color:#0b2a12;background:var(--lime);border-color:var(--lime);box-shadow:0 0 14px rgba(182,243,106,.4)}
 .mode-chip.wait{color:#2a1a05;background:var(--amber);border-color:var(--amber)}
 .seg button:disabled{cursor:default}
+.bt.npc{background:var(--amber);color:#2a1a05}
