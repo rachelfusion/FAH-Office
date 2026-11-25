@@ -112,7 +112,7 @@ function neon(text,color,w,h,font){
 }
 
 /* ============================ nav grid ============================ */
-const CELL=0.5, GW=73, GD=32, NAV=new Uint8Array(GW*GD).fill(1);
+const CELL=0.5, GW=73, GD=47, NAV=new Uint8Array(GW*GD).fill(1);
 for(let i=0;i<GW;i++) NAV[i]=0; for(let j=0;j<GD;j++) NAV[j*GW]=0;
 function blockArea(x0,z0,x1,z1,pad=0.2){ for(let j=0;j<GD;j++) for(let i=0;i<GW;i++){ const cx=(i+.5)*CELL, cz=(j+.5)*CELL; if(cx>x0-pad&&cx<x1+pad&&cz>z0-pad&&cz<z1+pad) NAV[j*GW+i]=0; } }
 function solid(x0,z0,x1,z1,y0,y1,c,o){ blockArea(x0,z0,x1,z1); return BB(x0,z0,x1,z1,y0,y1,c,o); }
@@ -334,6 +334,7 @@ function setMeetingVisuals(on){
 
 /* ============================ outside: street, Moon Café, shops ============================ */
 const OUT={cars:[],carT:1.5};
+blockArea(13.7,16.05,36.6,23.6,0); blockArea(0,23.35,36.6,23.6,0);
 const CLIP=[new THREE.Plane(new THREE.Vector3(0,0,-1),16.25),new THREE.Plane(new THREE.Vector3(0,0,1),0)];
 {
   const pave=0x3a3450, line=0x443d5c;
@@ -363,19 +364,25 @@ const CLIP=[new THREE.Plane(new THREE.Vector3(0,0,-1),16.25),new THREE.Plane(new
   const pane=(x0,x1,glass,em)=>{ BB(x0-0.08,2.58,x1+0.08,2.7,0.18,0.26,0x2a2236,{r:0}); return BB(x0,2.6,x1,2.64,0.26,2.05,0,{mat:own(glass,em),r:0,cast:false}); };
   const sign=(text,color,x,y,w,h,font)=>{ const m=neon(text,color,w,h,font||'400 150px Pacifico, cursive'); m.position.set(x,y,2.66); scene.add(m); glow(x,y,2.9,color,w*1.15,.22); };
 
-  // Moon Café + terrace
-  building(22.4,27.7,3.3,0x3a2b4a);
-  pane(22.9,26.0,'#ffcf8a',.55); BB(23.1,2.645,25.8,2.66,0.26,0.95,0x7a4a2e,{r:0,cast:false});
-  [23.6,24.5,25.4].forEach(x=>{ sph(0.07,0xfff2d6,x,1.75,2.67,scene,{em:1.2,cast:false,seg:8}); BB(x-0.006,2.66,x+0.006,2.67,1.82,2.05,0x222222,{r:0,cast:false}); });
-  BB(26.3,2.6,27.2,2.67,0,2.05,0x5c3f35,{r:0.02}); sph(0.035,0xffd166,27.05,1.0,2.7,scene,{seg:8});
-  for(let k=0;k<12;k++){ const m=B(0.42,0.04,0.85,k%2?0xfff2e0:0xff8fb1,22.85+k*0.42+0.21,2.32,3.0,scene,{r:0}); m.rotation.x=-0.38; }
-  sign('moon café','#ff8fc0',24.5,2.85,2.6,0.62);
-  sph(0.16,0xfff2c8,26.6,2.9,2.66,scene,{em:.9,cast:false}); 
-  plight(0xffb070,1.3,7,25,1.8,3.8);
+  // Moon Café: an open café deck in front of the office (left side); the shops are across the street (right side)
+  BB(0,16,13.6,23.4,-0.4,0,0x3a3450,{r:0,cast:false});
+  for(let x=1;x<13.6;x+=1) BB(x,16,x+0.015,23.4,0,0.004,0x443d5c,{r:0,cast:false});
+  BB(1.2,16.7,12.4,22.8,0,0.03,0x7a5a40,{r:0.02,cast:false});
+  for(let z=17.0;z<22.8;z+=0.35) BB(1.2,z,12.4,z+0.012,0.03,0.034,0x6a4c36,{r:0,cast:false});
+  blockArea(2.0,17.0,7.4,17.7); BB(2.0,17.0,7.4,17.7,0,0.95,0x2f2846,{r:0.05}); BB(1.95,16.95,7.45,17.75,0.95,1.02,0x5c3f35,{r:0.02});
+  B(0.5,0.45,0.4,0x1d1826,2.7,1.25,17.3,scene,{r:0.08}); sph(0.03,0xff5d5d,2.55,1.35,17.52,scene,{em:1,cast:false,seg:6}); cyl(0.05,0.1,0xffffff,2.95,1.08,17.55);
+  BB(4.2,17.15,6.4,17.65,1.02,1.4,0xffe2b0,{em:.45,r:0.02,cast:false}); [4.5,5.0,5.5,6.0].forEach((x,k)=>sph(0.08,[0xffd166,0xff8fb1,0xc68f5c,0xb6f36a][k],x,1.15,17.4,scene,{seg:8}));
+  B(0.3,0.2,0.3,0x2a2236,7.0,1.12,17.35,scene,{r:0.03});
+  [[1.3,16.9],[12.3,16.9],[1.3,22.6],[12.3,22.6]].forEach(([x,z])=>{ blockArea(x-0.1,z-0.1,x+0.1,z+0.1); B(0.14,2.8,0.14,0x5c3f35,x,1.4,z,scene,{r:0.03}); });
+  BB(1.2,16.84,12.4,16.96,2.75,2.88,0x5c3f35,{r:0.02}); BB(1.2,22.54,12.4,22.66,2.75,2.88,0x5c3f35,{r:0.02});
+  [1.3,6.8,12.3].forEach(x=>fairy(Array.from({length:12},(_,k)=>{ const t=k/11; return [x,2.7-Math.sin(PI*t)*0.35,16.95+t*5.6]; })));
+  const cs=neon('moon café','#ff8fc0',3.2,0.8,'400 150px Pacifico, cursive'); cs.position.set(6.8,2.3,22.68); scene.add(cs); glow(6.8,2.3,22.9,'#ff8fc0',3.6,.28);
+  sph(0.16,0xfff2c8,8.75,2.4,22.68,scene,{em:.9,cast:false});
+  plight(0xffb070,1.4,8,6.8,2.3,19.6); plight(0xffcf9e,0.7,5,4.7,1.8,17.9);
   const cafeCol=[0xff5fa2,0x5ee7ff,0xffd166];
-  [23.6,25.3,27.0].forEach((tx,ti)=>{
-    const tz=4.75; blockArea(tx-0.35,tz-0.35,tx+0.35,tz+0.35);
-    cyl(0.42,0.05,0xf4f2f8,tx,0.75,tz,{seg:24}); cyl(0.04,0.72,0x333333,tx,0.37,tz); cyl(0.22,0.03,0x333333,tx,0.015,tz);
+  [3.5,6.8,10.1].forEach((tx,ti)=>{
+    const tz=20.0; blockArea(tx-0.35,tz-0.35,tx+0.35,tz+0.35);
+    cyl(0.42,0.05,0xf4f2f8,tx,0.75,tz,{seg:24}); cyl(0.04,0.72,0x333333,tx,0.37,tz); cyl(0.22,0.03,0x333333,tx,0.045,tz);
     [[tz-0.72,0],[tz+0.72,PI]].forEach(([cz,rot])=>{
       const back=rot===0?-1:1;
       cyl(0.22,0.06,cafeCol[ti],tx,0.44,cz,{seg:18}); B(0.42,0.42,0.06,cafeCol[ti],tx,0.69,cz+back*0.22,scene,{r:0.03}); cyl(0.03,0.42,0x333333,tx,0.21,cz);
@@ -386,10 +393,8 @@ const CLIP=[new THREE.Plane(new THREE.Vector3(0,0,-1),16.25),new THREE.Plane(new
       SP.cafe.push({kind:'cafe',approach:{x:tx,z:cz},pose:{x:tx,y:0.18,z:cz,rot,anim:'cafe'},laptop:gm});
     });
   });
-  [[22.6,6.4],[27.6,6.4]].forEach(([x,z])=>cyl(0.04,2.6,0x2a2236,x,1.3,z));
-  fairy(Array.from({length:13},(_,k)=>{ const t=k/12; return [22.6+t*5,2.5-Math.sin(PI*t)*0.3,6.4]; }));
-  fairy(Array.from({length:9},(_,k)=>{ const t=k/8; return [22.6,2.6-Math.sin(PI*t)*0.25,2.75+t*3.6]; }));
-  fairy(Array.from({length:9},(_,k)=>{ const t=k/8; return [27.6,2.6-Math.sin(PI*t)*0.25,2.75+t*3.6]; }));
+  B(0.55,0.8,0.06,0x14100f,12.9,0.42,21.0,scene,{r:0.02}); [0.55,0.62,0.69].forEach((y,k)=>BB(12.7,21.04,13.1,21.05,y,y+0.03,[0xff8fc0,0xffd166,0x7dffb2][k],{r:0,cast:false}));
+  plant(0.6,22.8,0.9); plant(12.9,17.3,0.8); plant(0.6,17.2,0.8);
 
   // shops across the road: open-top cutaways like the office, with a walk-in door
   const shopGlass=new THREE.MeshLambertMaterial({color:0xbfefff,transparent:true,opacity:.16,depthWrite:false});
@@ -441,7 +446,11 @@ const CLIP=[new THREE.Plane(new THREE.Vector3(0,0,-1),16.25),new THREE.Plane(new
   const bench=(x0,z,seats)=>{ BB(x0,z-0.25,x0+1.6,z+0.22,0.42,0.5,0x9c6b43,{r:0.03}); BB(x0,z-0.33,x0+1.6,z-0.25,0.5,0.95,0x9c6b43,{r:0.03}); [x0+0.12,x0+1.48].forEach(x=>BB(x-0.04,z-0.25,x+0.04,z+0.2,0,0.42,0x2a2236,{r:0}));
     seats.forEach(sx=>SP.out.push({kind:'bench',approach:{x:sx,z:z+0.55},pose:{x:sx,y:0.22,z,rot:0,anim:'bench'}})); };
   bench(23.8,13.6,[24.2,25.0]); bench(32.3,12.6,[32.7,33.5]); bench(34.5,12.6,[34.9,35.7]);
-  SP.out.push({kind:'window',approach:{x:24.45,z:3.25},pose:{x:24.45,y:0,z:3.2,rot:PI,anim:'browse'}});
+  // a little plaza by the office door: fountain, benches, a street-name neon
+  blockArea(24.2,3.6,26.2,5.6); cyl(1.0,0.4,0x5a5470,25.2,0.2,4.6,{seg:32}); cyl(0.86,0.05,0x5ee7ff,25.2,0.41,4.6,{seg:32,em:.5}); cyl(0.12,0.9,0x8a82a8,25.2,0.6,4.6); sph(0.18,0x9fe8ff,25.2,1.12,4.6,scene,{em:.6}); glow(25.2,0.9,4.6,'#5ee7ff',2.2,.3);
+  bench(22.9,2.3,[23.3,24.1]); bench(25.7,2.3,[26.1,26.9]);
+  const ms=neon('fah st.','#ffd166',2.0,0.5,'400 150px Pacifico, cursive'); ms.position.set(25.2,2.55,0.08); scene.add(ms); glow(25.2,2.55,0.3,'#ffd166',2.4,.22);
+  SP.out.push({kind:'counter',approach:{x:4.8,z:18.25},pose:{x:4.8,y:0,z:18.15,rot:PI,anim:'browse'},icon:'☕'});
   cyl(0.1,0.42,0xe5484d,27.55,0.21,10.4); sph(0.1,0xe5484d,27.55,0.43,10.4,scene,{seg:8});
   cyl(0.18,0.55,0x3a3f4a,31.45,0.28,11.2,{r2:0.15}); plant(27.5,6.0,0.7);
 
@@ -791,20 +800,37 @@ function ambient(dt,t){
 /* ============================ camera controls & clicking ============================ */
 const ptrs=new Map(); let drag=null, pinch0=0, zoom0=1;
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+let ang0=0, yaw0=0, mid0=null;
+const clampYaw=v=>Math.min(1.4,Math.max(0.15,v));
+// Move the view across the ground: drag right and the world follows your finger.
+function panBy(dx,dy){
+  const u=(camera.right-camera.left)/camera.zoom/stage.clientWidth, sy=Math.sin(CAM.yaw), cy=Math.cos(CAM.yaw), sp=Math.sin(CAM.pitch);
+  CAM.target.x+= (-cy*dx - sy*dy/sp)*u;
+  CAM.target.z+= ( sy*dx - cy*dy/sp)*u;
+  CAM.target.x=Math.min(38,Math.max(-2,CAM.target.x)); CAM.target.z=Math.min(25,Math.max(-2,CAM.target.z));
+  viewGoal=null; placeCamera();
+}
+stage.addEventListener('contextmenu',e=>e.preventDefault());
 stage.addEventListener('pointerdown',e=>{ try{ stage.setPointerCapture(e.pointerId); }catch(_){} ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(ptrs.size===1) drag={x:e.clientX,y:e.clientY,yaw:CAM.yaw,pitch:CAM.pitch,moved:false};
-  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch0=Math.hypot(a.x-b.x,a.y-b.y)||1; zoom0=CAM.zoom; if(drag) drag.moved=true; } });
+  if(ptrs.size===1) drag={x:e.clientX,y:e.clientY,lx:e.clientX,ly:e.clientY,yaw:CAM.yaw,pitch:CAM.pitch,moved:false,rotate:e.shiftKey||e.altKey||e.ctrlKey||e.button===2};
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch0=Math.hypot(a.x-b.x,a.y-b.y)||1; zoom0=CAM.zoom; ang0=Math.atan2(b.y-a.y,b.x-a.x); yaw0=CAM.yaw; mid0={x:(a.x+b.x)/2,y:(a.y+b.y)/2}; if(drag) drag.moved=true; } });
 stage.addEventListener('pointermove',e=>{ if(!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; CAM.zoom=Math.min(2.6,Math.max(.5,zoom0*Math.hypot(a.x-b.x,a.y-b.y)/pinch0)); viewGoal=null; placeCamera(); return; }
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()];
+    CAM.zoom=Math.min(2.6,Math.max(.45,zoom0*Math.hypot(a.x-b.x,a.y-b.y)/pinch0)); CAM.yaw=clampYaw(yaw0-(Math.atan2(b.y-a.y,b.x-a.x)-ang0));
+    const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2}; panBy(mid.x-mid0.x,mid.y-mid0.y); mid0=mid; return; }
   if(!drag) return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
   if(Math.hypot(dx,dy)>4){ drag.moved=true; stage.classList.add('dragging'); }
-  if(drag.moved){ CAM.yaw=Math.min(1.4,Math.max(0.15,drag.yaw-dx*0.006)); CAM.pitch=Math.min(1.1,Math.max(0.35,drag.pitch+dy*0.004)); placeCamera(); } });
+  if(drag.moved){
+    if(drag.rotate){ CAM.yaw=clampYaw(drag.yaw-dx*0.006); CAM.pitch=Math.min(1.1,Math.max(0.35,drag.pitch+dy*0.004)); viewGoal=null; placeCamera(); }
+    else panBy(e.clientX-drag.lx,e.clientY-drag.ly);
+  }
+  drag.lx=e.clientX; drag.ly=e.clientY; });
 function endPtr(e){ if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId); stage.classList.remove('dragging');
   if(drag&&!drag.moved&&ptrs.size===0&&e.type==='pointerup'){ const r=stage.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ndc,camera);
     const hits=ray.intersectObjects(CH.filter(c=>c.kind==='person').map(c=>c.g),true); const h=hits.find(x=>x.object.userData.cid&&x.object.isMesh); if(h) openQuick(byId(h.object.userData.cid),e.clientX-r.left,e.clientY-r.top); else closeQuick(); }
   if(ptrs.size===0) drag=null; }
 stage.addEventListener('pointerup',endPtr); stage.addEventListener('pointercancel',endPtr);
-stage.addEventListener('wheel',e=>{ e.preventDefault(); CAM.zoom=Math.min(2.6,Math.max(.5,CAM.zoom*(1-e.deltaY*0.0012))); viewGoal=null; placeCamera(); },{passive:false});
+stage.addEventListener('wheel',e=>{ e.preventDefault(); CAM.zoom=Math.min(2.6,Math.max(.45,CAM.zoom*(1-e.deltaY*0.0012))); viewGoal=null; placeCamera(); },{passive:false});
 
 /* ============================ quick menu (click a character) ============================ */
 const quick=document.createElement('div'); quick.className='quick'; quick.hidden=true; stage.appendChild(quick);
@@ -875,8 +901,9 @@ function pickActivity(ch,act){
     if(!API.onPickActivity||!API.onPickActivity(act)){ log('activity','not connected to office-bot right now, try again in a moment'); return; }
     setState(ch,act,{quiet:true});
   } else setState(ch,act);
-  if(act==='cafe'||act==='out'){ if(currentView==='office') setView('outside'); }
-  else if(currentView==='outside') setView('office');
+  if(act==='cafe'){ if(currentView!=='all') setView('cafe'); }
+  else if(act==='out'){ if(currentView!=='all') setView('shops'); }
+  else if(currentView==='cafe'||currentView==='shops') setView('office');
 }
 // Out of the call you can still be asleep, working outside or hiding from Simon.
 const AWAY_OK=['offline','cafe','out'];
@@ -1023,19 +1050,19 @@ if($('lightsBtn')){ $('lightsBtn').addEventListener('pointerdown',e=>e.stopPropa
 setLights(LIGHTS.on);
 
 /* ============================ views: office / outside / all ============================ */
-const VIEWS={office:{t:[11,0,8.4],z:1},outside:{t:[29.4,0,7.2],z:0.98},all:{t:[18.2,0,7.8],z:0.62}};
+const VIEWS={office:{t:[11,0,8.4],z:1},cafe:{t:[6.8,0,18.8],z:1.25},shops:{t:[29.4,0,7.2],z:0.98},all:{t:[17.6,0,10.8],z:0.52}};
 let viewGoal=null, currentView='office';
 function setView(v){
   const V=VIEWS[v]; if(!V) return; currentView=v;
   viewGoal={t:new THREE.Vector3(...V.t),z:V.z};
-  document.querySelectorAll('#views button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+  document.querySelectorAll('#views button[data-v]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
 }
 function tickView(dt){
   if(!viewGoal) return;
   const k=Math.min(1,dt*4); CAM.target.lerp(viewGoal.t,k); CAM.zoom+=(viewGoal.z-CAM.zoom)*k; placeCamera();
   if(CAM.target.distanceTo(viewGoal.t)<0.01&&Math.abs(CAM.zoom-viewGoal.z)<0.002){ CAM.target.copy(viewGoal.t); CAM.zoom=viewGoal.z; placeCamera(); viewGoal=null; }
 }
-document.querySelectorAll('#views button').forEach(b=>{ b.addEventListener('pointerdown',e=>e.stopPropagation()); b.onclick=()=>setView(b.dataset.v); });
+document.querySelectorAll('#views button').forEach(b=>{ b.addEventListener('pointerdown',e=>e.stopPropagation()); b.onclick=()=>{ if(b.dataset.rot){ CAM.yaw=clampYaw(CAM.yaw+Number(b.dataset.rot)*0.3); placeCamera(); } else setView(b.dataset.v); }; });
 
 function tick(dt){ TT+=dt; tickLights(dt); tickView(dt); tickCars(dt); updateMeeting(); ALL().forEach(ch=>{ moveChar(ch,dt); aiTick(ch,dt); ch.kind==='bot'?animBot(ch,TT):animPerson(ch,TT); }); ambient(dt,TT);
   DYN.docks.forEach((m,i)=>{ const b=BOTS[i]&&byId(BOTS[i].id); m.emissiveIntensity= b&&b.state==='off'&&!b.path.length? .4+Math.sin(TT*3)*.3 : .1; }); }
