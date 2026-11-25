@@ -7,9 +7,11 @@
 // Deafening is a shortcut to 'meeting' (each person can switch that off).
 // Picking something by hand while deafened wins until you deafen/undeafen again.
 export const ACTIVITIES = ['working', 'cafe', 'gaming', 'meeting', 'eating', 'phone', 'out'];
+// Outside activities also work when you're not in the call ("around, just not in voice").
+export const OFFLINE_OK = ['cafe', 'out'];
 
 export function resolveActivity({ inChannel, deafened = false, pick = null, deafenMeeting = true, override = false }) {
-  if (!inChannel) return 'offline';
+  if (!inChannel) return OFFLINE_OK.includes(pick) ? pick : 'offline';
   if (deafened && deafenMeeting && !override) return 'meeting';
   return ACTIVITIES.includes(pick) ? pick : 'working';
 }

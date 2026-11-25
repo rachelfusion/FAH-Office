@@ -149,3 +149,4 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-o
 .views button{font:600 12px var(--font-body);color:#e9e2ff;background:transparent;border:0;border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap}
 .views button[aria-pressed="true"]{background:rgba(255,255,255,.16);color:#fff}
 @media (max-width:640px){.views{top:8px;left:8px}.views button{padding:3px 7px;font-size:11px}}
+.seg.acts.three{grid-template-columns:repeat(3,1fr)}

@@ -7,7 +7,7 @@
 import http from 'node:http';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
 import { WebSocketServer } from 'ws';
-import { ACTIVITIES, botState, resolveActivity, voiceFacts } from './state.js';
+import { ACTIVITIES, OFFLINE_OK, botState, resolveActivity, voiceFacts } from './state.js';
 import { verify } from './token.js';
 import { BOARD_FOOTER, boardLines } from './board.js';
 
@@ -42,7 +42,7 @@ let snapshot = { type: 'state', channel: null, crew: [], bots: [], updatedAt: 0 
 // everyone to 'working' with the deafen shortcut on.
 const prefs = new Map();
 function prefFor(id) {
-  if (!prefs.has(id)) prefs.set(id, { pick: null, deafenMeeting: true, override: false, lastDeaf: null });
+  if (!prefs.has(id)) prefs.set(id, { pick: null, deafenMeeting: true, override: false, lastDeaf: null, lastIn: null });
   return prefs.get(id);
 }
 
@@ -62,12 +62,15 @@ async function rebuild(reason) {
   const crew = await Promise.all(cfg.crew.map(async (id) => {
     const facts = voiceFacts(voice(id), cfg.channelId);
     const p = prefFor(id);
-    if (!facts.inChannel) { p.pick = null; p.override = false; }           // leaving the call resets your pick
+    if (p.lastIn !== null && p.lastIn !== facts.inChannel) { p.pick = null; p.override = false; } // joining or leaving the call starts you fresh
+    p.lastIn = facts.inChannel;
+    if (!facts.inChannel && !OFFLINE_OK.includes(p.pick)) p.pick = null;
     if (p.lastDeaf !== facts.deafened) { p.override = false; p.lastDeaf = facts.deafened; } // (un)deafening re-enables the shortcut
     return {
       ...(await memberInfo(guild, id)),
       state: resolveActivity({ ...facts, ...p }),
       deafened: facts.deafened,
+      inCall: facts.inChannel,
       pick: p.pick,
       deafenMeeting: p.deafenMeeting,
     };
@@ -180,10 +183,12 @@ function onClientMessage(ws, raw) {
   try { msg = JSON.parse(raw); } catch { return; }
   if (!cfg.crew.includes(ws.uid)) return;
   const p = prefFor(ws.uid);
-  if (msg.type === 'activity' && ACTIVITIES.includes(msg.activity)) {
+  if (msg.type === 'activity' && (ACTIVITIES.includes(msg.activity) || msg.activity === 'offline')) {
     const guild = client.guilds.cache.get(cfg.guildId);
-    p.pick = msg.activity;
-    p.override = voiceFacts(guild?.voiceStates.cache.get(ws.uid), cfg.channelId).deafened; // picking while deafened wins
+    const facts = voiceFacts(guild?.voiceStates.cache.get(ws.uid), cfg.channelId);
+    if (!facts.inChannel && msg.activity !== 'offline' && !OFFLINE_OK.includes(msg.activity)) return; // indoor activities need the call
+    p.pick = msg.activity === 'offline' ? null : msg.activity;
+    p.override = facts.deafened; // picking while deafened wins
     schedule(`pick ${msg.activity}`);
   } else if (msg.type === 'prefs' && typeof msg.deafenMeeting === 'boolean') {
     p.deafenMeeting = msg.deafenMeeting;

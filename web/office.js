@@ -838,6 +838,7 @@ function logState(ch,a,b){
 function rowSub(ch){
   if(ch.kind==='bot') return ch.state==='off'?'not in the call · charging':ch.playing?`in call · playing ${ch.e.song}`:'in call · on the decks';
   const sub={offline:'not in the call · sleeping',working:'locked in at the big table',gaming:'gaming on the couch',meeting:'in a meeting with Simon',eating:'eating ramen at the bar',phone:'scrolling on a beanbag',cafe:'working outside at Moon Café',out:`outside, praying Simon doesn't find ${ch.e.me?'you':'them'}`}[ch.state]||'';
+  if(ch.live&&ch.live.inCall===false&&ch.state!=='offline') return sub+' · not in the call';
   return ch.live&&ch.live.deafened&&ch.state!=='offline' ? sub+' · deafened' : sub;
 }
 function renderRows(){
@@ -870,20 +871,23 @@ function renderRows(){
 function pickActivity(ch,act){
   if(MODE==='live'){
     if(!ch.e.me) return;
-    if(ch.state==='offline'){ log('activity','join the voice call first, then pick what you are doing'); return; }
+    if(!inCall(ch)&&!AWAY_OK.includes(act)){ log('activity','join the voice call for that one. Out of the call you can be asleep, working outside or hiding'); return; }
     if(!API.onPickActivity||!API.onPickActivity(act)){ log('activity','not connected to office-bot right now, try again in a moment'); return; }
     setState(ch,act,{quiet:true});
   } else setState(ch,act);
   if(act==='cafe'||act==='out'){ if(currentView==='office') setView('outside'); }
   else if(currentView==='outside') setView('office');
 }
+// Out of the call you can still be asleep, working outside or hiding from Simon.
+const AWAY_OK=['offline','cafe','out'];
+const inCall=ch=> MODE!=='live' || (ch.live ? ch.live.inCall!==false : ch.state!=='offline');
 function activityPicker(ch,{withAsleep}){
-  const seg=document.createElement('div'); seg.className='seg acts'+(withAsleep?' six':''); seg.setAttribute('role','group'); seg.setAttribute('aria-label',`What ${ch.e.name} is doing`);
-  const list= withAsleep? [['offline','💤','asleep'],...ACTS] : ACTS;
-  const off= MODE==='live' && ch.state==='offline';
+  const away= MODE==='live' && !inCall(ch);
+  const seg=document.createElement('div'); seg.className='seg acts'+(away?' three':withAsleep?' six':''); seg.setAttribute('role','group'); seg.setAttribute('aria-label',`What ${ch.e.name} is doing`);
+  const list= away? [['offline','💤','asleep'],...ACTS.filter(a=>AWAY_OK.includes(a[0]))] : withAsleep? [['offline','💤','asleep'],...ACTS] : ACTS;
   list.forEach(([s,ic,l])=>{ const o=document.createElement('button'); o.dataset.s=s; o.innerHTML=`<span aria-hidden="true">${ic}</span>${l}`; o.setAttribute('aria-pressed',ch.state===s);
-    if(off){ o.disabled=true; o.title='Join the voice call to pick'; } else o.onclick=()=>pickActivity(ch,s); seg.appendChild(o); });
-  if(off){ const n=document.createElement('small'); n.className='pick-note'; n.textContent='Join the voice call to pick what you are doing.'; seg.appendChild(n); }
+    o.onclick=()=>pickActivity(ch,s); seg.appendChild(o); });
+  if(away){ const n=document.createElement('small'); n.className='pick-note'; n.textContent='Not in the call: you can be asleep, working outside or hiding. Join the call for everything else.'; seg.appendChild(n); }
   return seg;
 }
 function deafenToggle(ch){
@@ -1070,13 +1074,13 @@ function applyLive(snap,{looks={},meId=null}={}){
       crew.map((c,i)=>({id:c.id,name:c.name,me:c.id===meId,bed:i,seat:PREF_SEATS[i],look:{...(looks[c.id]||DEFAULT_LOOKS[i%DEFAULT_LOOKS.length])}})),
       bots.map((b,i)=>({id:b.id,name:b.name,color:BOT_COLORS[i],song:'music'})));
     CH.forEach(ch=>{
-      if(ch.kind==='person'){ const c=crew.find(x=>x.id===ch.id); ch.live={deafened:!!c.deafened,deafenMeeting:c.deafenMeeting!==false,pick:c.pick||null}; setState(ch,c.state,{instant:true,quiet:true}); }
+      if(ch.kind==='person'){ const c=crew.find(x=>x.id===ch.id); ch.live={deafened:!!c.deafened,deafenMeeting:c.deafenMeeting!==false,pick:c.pick||null,inCall:c.inCall!==undefined?!!c.inCall:c.state!=='offline'}; setState(ch,c.state,{instant:true,quiet:true}); }
       else { const on=bots.find(b=>b.id===ch.id).state==='on'; setBot(ch,on,{instant:true,quiet:true}); setPlaying(ch,on,{quiet:true}); }
     });
     $('log').innerHTML=''; log('live',`connected to ${snap.channel?'🔊 '+snap.channel:'Discord'}`,'showing who is really there');
   } else {
     CH.forEach(ch=>{
-      if(ch.kind==='person'){ const c=crew.find(x=>x.id===ch.id); if(c.name!==ch.e.name){ ch.e.name=c.name; ch.lblKey=''; } ch.live={deafened:!!c.deafened,deafenMeeting:c.deafenMeeting!==false,pick:c.pick||null}; setState(ch,c.state); }
+      if(ch.kind==='person'){ const c=crew.find(x=>x.id===ch.id); if(c.name!==ch.e.name){ ch.e.name=c.name; ch.lblKey=''; } ch.live={deafened:!!c.deafened,deafenMeeting:c.deafenMeeting!==false,pick:c.pick||null,inCall:c.inCall!==undefined?!!c.inCall:c.state!=='offline'}; setState(ch,c.state); }
       else { const on=bots.find(x=>x.id===ch.id).state==='on'; if((ch.state==='on')!==on){ setBot(ch,on); setPlaying(ch,on,{quiet:true}); } }
     });
   }
