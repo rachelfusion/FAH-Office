@@ -38,6 +38,14 @@
 
   let wentLive = false;
   let retry = 1000;
+  let sock = null;
+  const send = (msg) => {
+    if (!sock || sock.readyState !== WebSocket.OPEN) return false;
+    sock.send(JSON.stringify(msg));
+    return true;
+  };
+  O.onPickActivity = (activity) => send({ type: 'activity', activity });
+  O.onSetPrefs = (prefs) => send({ type: 'prefs', ...prefs });
 
   async function connect() {
     let token;
@@ -45,6 +53,7 @@
     catch (e) { console.warn('No live pass:', e.message); return later(); }
 
     const ws = new WebSocket(`${cfg.liveUrl}/live?token=${encodeURIComponent(token)}`);
+    sock = ws;
     ws.onopen = () => { retry = 1000; };
     ws.onmessage = (ev) => {
       let snap;

@@ -6,7 +6,8 @@ A late-night 3D hangout office for your Discord voice call. Everyone on the crew
 |---|---|
 | Not in the voice channel | 💤 Asleep in their bunk |
 | In the voice channel | 💻 Locked in at the big shared table |
-| In the channel but deafened | 🤝 In the glass meeting room with Simon (an NPC), who presents at the screen |
+| In the channel | You pick: 💻 working (big table) · 🎮 gaming (couch + TV) · 🤝 meeting (glass room with Simon, an NPC) · 🍜 eating (ramen bar) · 📱 phone (beanbags) |
+| Deafened | Shortcut to 🤝 meeting (each person can switch this off); undeafen to go back |
 | Music bot in the channel | 🎛️ At the DJ decks, speakers thumping |
 | Music bot not in the channel | 🔌 Charging on its dock |
 
@@ -29,7 +30,7 @@ Vercel can't run the bot: Discord only reports voice changes over a connection t
 ```
 bot/
   src/index.js     watches the voice channel, serves the WebSocket at /live
-  src/state.js     voice state → asleep / working / meeting
+  src/state.js     voice state + your pick → asleep / working / gaming / meeting / eating / phone
   src/token.js     checks the pass from the website
   test/            node --test
 web/

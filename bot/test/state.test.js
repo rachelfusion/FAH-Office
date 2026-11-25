@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { memberState, botState } from '../src/state.js';
+import { memberState, botState, resolveActivity, voiceFacts } from '../src/state.js';
 import { sign, verify } from '../src/token.js';
 
 const CH = '123';
@@ -30,4 +30,20 @@ test('tokens verify with the right secret and expire', () => {
   assert.equal(verify(t + 'x', 's3cret'), null);
   assert.equal(verify(sign({ uid: '42', exp: Date.now() - 1 }, 's3cret'), 's3cret'), null);
   assert.equal(verify('garbage', 's3cret'), null);
+});
+
+test('activity picks: offline wins, deafen shortcut, manual override', () => {
+  assert.equal(resolveActivity({ inChannel: false, pick: 'gaming' }), 'offline');
+  assert.equal(resolveActivity({ inChannel: true }), 'working');
+  assert.equal(resolveActivity({ inChannel: true, pick: 'eating' }), 'eating');
+  assert.equal(resolveActivity({ inChannel: true, pick: 'nonsense' }), 'working');
+  assert.equal(resolveActivity({ inChannel: true, deafened: true, pick: 'gaming' }), 'meeting');
+  assert.equal(resolveActivity({ inChannel: true, deafened: true, pick: 'gaming', deafenMeeting: false }), 'gaming');
+  assert.equal(resolveActivity({ inChannel: true, deafened: true, pick: 'phone', override: true }), 'phone');
+});
+
+test('voice facts only count deafened inside the channel', () => {
+  assert.deepEqual(voiceFacts({ channelId: CH, selfDeaf: true }, CH), { inChannel: true, deafened: true });
+  assert.deepEqual(voiceFacts({ channelId: '999', selfDeaf: true }, CH), { inChannel: false, deafened: false });
+  assert.deepEqual(voiceFacts(undefined, CH), { inChannel: false, deafened: false });
 });

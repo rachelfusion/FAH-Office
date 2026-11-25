@@ -134,8 +134,8 @@ function findPath(from,to){
 }
 
 /* ============================ the room ============================ */
-const SP={beds:[],seats:[],lounge:[],extras:[]};
-const DYN={lamps:[],lampGlows:[],blankets:[],cones:[],leds:[],docks:[],strip:[],stripGlows:[],tv:null,lava:[],disco:null,discoGlints:[]};
+const SP={beds:[],seats:[],lounge:[],extras:[],gaming:[],phone:[],dining:[]};
+const DYN={steam:[],tvGlow:null,lamps:[],lampGlows:[],blankets:[],cones:[],leds:[],docks:[],strip:[],stripGlows:[],tv:null,lava:[],disco:null,discoGlints:[]};
 const C={floor:0x241d2e,plank:0x2b2337,wallB:0x2c2343,wallL:0x271f3c,trim:0x3b2f58,wood:0x5c3f35,woodD:0x3d2a24,dark:0x2a2236};
 
 // floor & walls
@@ -225,6 +225,22 @@ solid(21.0,0.02,21.95,0.95,0,2.05,0x9fe3d0,{r:0.18}); cyl(0.025,0.5,0xe8f7f2,21.
 SP.extras.push({kind:'coffee',approach:{x:17,z:1.55},pose:{x:17,y:0,z:1.45,rot:PI,anim:'mug'},icon:'☕'});
 SP.extras.push({kind:'fridge',approach:{x:20.35,z:1.6},pose:{x:20.35,y:0,z:1.5,rot:PI*0.8,anim:'mug'},icon:'🧃'});
 
+// ramen bar: a high round table with 3 stools, plus a standing spot at the counter
+{
+  const tx=2.9, tz=12.6;
+  blockArea(tx-0.5,tz-0.5,tx+0.5,tz+0.5);
+  cyl(0.5,0.06,0x5c3f35,tx,0.98,tz,{seg:32}); cyl(0.05,0.95,0x2a2236,tx,0.48,tz); cyl(0.28,0.04,0x2a2236,tx,0.02,tz);
+  [[tx-0.75,tz,PI/2],[tx+0.75,tz,-PI/2],[tx,tz-0.78,0]].forEach(([x,z,rot])=>{
+    cyl(0.2,0.07,0xff5fa2,x,0.62,z,{seg:20}); cyl(0.035,0.58,0x444444,x,0.3,z); torus(0.13,0.012,PI*2,0x444444,x,0.25,z,scene).rotation.x=PI/2; cyl(0.17,0.03,0x333333,x,0.015,z);
+    const bx=x+(tx-x)*0.55, bz=z+(tz-z)*0.55;
+    cyl(0.1,0.07,0xf4f2f8,bx,1.05,bz,{r2:0.065,seg:16}); cyl(0.085,0.01,0xe8b04a,bx,1.09,bz,{seg:16}); sph(0.025,0xff8a5c,bx+0.03,1.1,bz,scene,{seg:6});
+    DYN.steam.push(glow(bx,1.3,bz,'#ffffff',0.45,0));
+    SP.dining.push({kind:'stool',approach:{x,z},pose:{x,y:0.36,z,rot,anim:'eat',sit:true}});
+  });
+  SP.dining.push({kind:'counter',approach:{x:18.6,z:1.6},pose:{x:18.6,y:0,z:1.5,rot:PI,anim:'eat'}});
+  const nr=neon('ramen','#ff8a5c',1.1,0.28,'400 150px Pacifico, cursive'); nr.rotation.y=PI/2; nr.position.set(0.08,2.35,11.6); scene.add(nr); glow(0.3,2.35,11.6,'#ff8a5c',1.4,.25);
+}
+
 // DJ booth, speakers, bot docks
 solid(17,5,19.4,5.8,0,1.0,0x1b1724,{r:0.1}); BB(16.95,4.95,19.45,5.85,0.98,1.06,0x2c2540,{r:0.04});
 [17.6,18.8].forEach(x=>{ cyl(0.26,0.04,0x0c0c0f,x,1.08,5.4); cyl(0.07,0.05,0xff5fa2,x,1.1,5.4,{em:.6}); });
@@ -240,7 +256,7 @@ solid(14.3,11,15.6,14.6,0,0.45,0x4b2f78,{r:0.16}); B(0.34,0.7,3.6,0x4b2f78,14.47
 solid(14.3,10.68,15.6,11.02,0,0.8,0x432a6c,{r:0.15}); solid(14.3,14.58,15.6,14.92,0,0.8,0x432a6c,{r:0.15});
 [[11.05,12.2],[12.25,13.4],[13.45,14.55]].forEach(([a,b])=>BB(14.62,a,15.58,b,0.42,0.6,0x6a45a8,{r:0.12}));
 sph(0.17,0xff5fa2,14.75,0.85,11.45,scene).scale.set(.6,1,1); sph(0.17,0x5ee7ff,14.75,0.85,14.15,scene).scale.set(.6,1,1);
-[11.62,12.82,14.0].forEach(z=>SP.lounge.push({kind:'couch',approach:{x:16.35,z},pose:{x:15.05,y:0.32,z,rot:PI/2,anim:'phone'}}));
+[11.62,12.82,14.0].forEach(z=>SP.gaming.push({kind:'couch',approach:{x:16.35,z},pose:{x:15.05,y:0.32,z,rot:PI/2,anim:'game'}}));
 blockArea(17.25,12.15,18.75,13.35); cyl(0.78,0.08,C.wood,18,0.42,12.75); cyl(0.08,0.38,C.woodD,18,0.19,12.75); cyl(0.4,0.03,C.woodD,18,0.015,12.75);
 cyl(0.2,0.1,0xf2eefc,17.6,0.51,12.55); BB(18.1,12.95,18.5,13.25,0.46,0.49,0xff5fa2,{r:0});
 cyl(0.1,0.12,0x2a2236,18.35,0.52,12.45); cyl(0.07,0.36,0xff6fb0,18.35,0.76,12.45,{mat:new THREE.MeshBasicMaterial({color:0xff6fb0,transparent:true,opacity:.35})}); cyl(0.1,0.08,0x2a2236,18.35,0.98,12.45);
@@ -248,10 +264,12 @@ cyl(0.1,0.12,0x2a2236,18.35,0.52,12.45); cyl(0.07,0.36,0xff6fb0,18.35,0.76,12.45
 glow(18.35,0.8,12.45,'#ff7ab0',1.1,.45);
 solid(21.1,11.7,21.8,13.9,0,0.5,0x1b1724,{r:0.08}); B(0.1,1.25,1.95,0x0b0b0f,21.4,1.3,12.8,scene,{r:0.04});
 DYN.tv=own('#334455',0.7); B(0.02,1.12,1.8,0,21.34,1.3,12.8,scene,{mat:DYN.tv,r:0,cast:false});
+B(0.32,0.1,0.5,0xf4f2f8,21.3,0.55,13.35,scene,{r:0.04}); sph(0.02,0x5ee7ff,21.13,0.56,13.35,scene,{em:1,cast:false,seg:6});
+DYN.tvGlow=glow(21.0,1.3,12.8,'#7dffb2',2.4,0);
 [[18.2,14.75,0xff7eb6],[19.9,14.75,0x3cc9b4]].forEach(([x,z,c])=>{
   const s=sph(0.6,c,x,0.27,z,scene,{seg:24}); s.scale.set(1,0.5,1);
   blockArea(x-0.5,z-0.5,x+0.5,z+0.5);
-  SP.lounge.push({kind:'beanbag',approach:{x,z:13.75},pose:{x,y:0.1,z,rot:Math.atan2(21.3-x,12.8-z),anim:'phone'}});
+  SP.phone.push({kind:'beanbag',approach:{x,z:13.75},pose:{x,y:0.1,z,rot:Math.atan2(21.3-x,12.8-z),anim:'phone'}});
 });
 cyl(0.025,1.7,0x222222,21.4,0.85,15.3); cyl(0.2,0.05,0x222222,21.4,0.03,15.3); cyl(0.2,0.3,0xff8fc4,21.4,1.75,15.3,{r2:0.28,em:.8}); glow(21.4,1.7,15.3,'#ff5fa2',1.6,.4);
 cyl(0.008,0.6,0x888888,17.6,3.2,12.9,{cast:false});
@@ -362,6 +380,9 @@ function buildPerson(L){
   if(L.glasses==='shades'){ [-0.137,0.137].forEach(x=>B(0.2,0.13,0.035,0x140d1c,x,0.266,0.305,deco,{r:0.05,cast:false})); B(0.07,0.03,0.03,0x140d1c,0,0.28,0.305,deco,{r:0,cast:false}); }
   P.phone=new THREE.Group(); B(0.13,0.22,0.03,0x1b1622,0,0,0,P.phone,{r:0.03}); B(0.11,0.18,0.008,0x9fdcff,0,0,0.017,P.phone,{em:1,r:0,cast:false}); P.phone.position.set(0,-0.03,0.07); P.armRH.add(P.phone);
   P.mug=new THREE.Group(); cyl(0.065,0.14,0xffffff,0,0,0,{parent:P.mug}); torus(0.038,0.012,PI*2,0xffffff,0.075,0,0,P.mug); P.mug.position.set(0,-0.02,0.08); P.armRH.add(P.mug);
+  P.pad=new THREE.Group(); B(0.26,0.05,0.13,0x1b1622,0,0,0,P.pad,{r:0.025}); sph(0.02,0x5ee7ff,0.07,0.03,0.02,P.pad,{em:1,cast:false,seg:6}); sph(0.02,0xff5fa2,0.1,0.03,-0.02,P.pad,{em:1,cast:false,seg:6}); B(0.05,0.02,0.05,0x444444,-0.08,0.03,0,P.pad,{r:0});
+  P.pad.position.set(-0.17,-0.02,0.06); P.pad.rotation.x=PI/2; P.armRH.add(P.pad);
+  P.sticks=new THREE.Group(); [-0.012,0.012].forEach(dx=>{ const c=capsule(0.006,0.2,0xe8c99a,dx,0,0,P.sticks,{cast:false}); c.rotation.x=0.3; }); P.sticks.position.set(0,-0.04,0.07); P.armRH.add(P.sticks);
   return P;
 }
 function buildBot(color){
@@ -429,12 +450,27 @@ function loungeFor(){ const f=free(SP.lounge); return f[Math.floor(Math.random()
 function lerpAng(a,b,t){ const d=((b-a+PI)%(2*PI)+2*PI)%(2*PI)-PI; return a+d*t; }
 
 function meetingSeatFor(ch){ const f=free(SP.meeting); return f[0]||SP.meeting[0]; }
+const ACTS=[['working','💻','locked in'],['gaming','🎮','gaming'],['meeting','🤝','meeting'],['eating','🍜','eating'],['phone','📱','on phone']];
+const ACT_ICON={working:'💻',gaming:'🎮',meeting:'🤝',eating:'🍜',phone:'📱',offline:'💤'};
+const ACT_ANIM={gaming:'game',eating:'eat',phone:'phone'};
+function firstFree(lists){ for(const l of lists){ const f=free(l); if(f.length) return f[0]; } return lists[0][0]; }
+function spotFor(ch,st){
+  if(st==='offline') return SP.beds[ch.e.bed];
+  if(st==='working') return seatFor(ch);
+  if(st==='meeting') return meetingSeatFor(ch);
+  if(st==='gaming') return firstFree([SP.gaming,SP.phone]);
+  if(st==='phone') return firstFree([SP.phone,SP.gaming]);
+  if(st==='eating') return firstFree([SP.dining]);
+  return seatFor(ch);
+}
 function setState(ch,st,{instant=false,quiet=false}={}){
   if(st==='afk') st='meeting'; // older bot versions call it afk
   const prev=ch.state; if(prev===st&&!instant) return;
   ch.state=st; ch.timer=rand(10,22); ch.speaking=false;
-  const target= st==='offline'? SP.beds[ch.e.bed] : st==='working'? seatFor(ch) : meetingSeatFor(ch);
-  if(instant) placeAt(ch,target); else { goTo(ch,target); ch.pop={offline:'😴',working:'⚡',meeting:'🤝'}[st]; ch.popT=2.4; }
+  if(!ACT_ICON[st]) st='working';
+  ch.state=st; ch.animOverride=ACT_ANIM[st]||null;
+  const target=spotFor(ch,st);
+  if(instant) placeAt(ch,target); else { goTo(ch,target); ch.pop={offline:'😴',working:'⚡'}[st]||ACT_ICON[st]; ch.popT=2.4; }
   if(!quiet) logState(ch,prev,st);
   renderRows();
 }
@@ -471,7 +507,7 @@ function aiTick(ch,dt){
   ch.timer-=dt; if(ch.timer>0) return;
   if(ch.state==='working'){
     if(ch.spot.kind==='seat'){
-      if(Math.random()<.5){ const f=free(SP.extras.concat(SP.lounge)); if(f.length){ goTo(ch,f[Math.floor(Math.random()*f.length)]); ch.timer=rand(5,8); return; } }
+      if(Math.random()<.5){ const f=free(SP.extras); if(f.length){ goTo(ch,f[Math.floor(Math.random()*f.length)]); ch.timer=rand(5,8); return; } }
       ch.timer=rand(14,28);
     } else { goTo(ch,seatFor(ch)); ch.timer=rand(16,30); }
   } else ch.timer=30;
@@ -480,10 +516,10 @@ function aiTick(ch,dt){
 const RESET_KEYS=['legL','legR','armL','armR','head','torso'];
 function animPerson(ch,t,force){
   const P=ch.P, ph=ch.phase;
-  const a= force || (ch.path.length||(ch.glide&&!ch.posed&&ch.glide.t<0.6) ? 'walk' : (ch.posed? ch.spot.pose.anim : 'stand'));
+  const a= force || (ch.path.length||(ch.glide&&!ch.posed&&ch.glide.t<0.6) ? 'walk' : (ch.posed? (ch.animOverride||ch.spot.pose.anim) : 'stand'));
   ch.anim=a;
   RESET_KEYS.forEach(k=>P[k].rotation.set(0,0,0));
-  P.body.position.y=0; P.phone.visible=false; P.mug.visible=false;
+  P.body.position.y=0; P.phone.visible=false; P.mug.visible=false; if(P.pad){ P.pad.visible=false; P.sticks.visible=false; }
   const sit=()=>{ P.legL.rotation.x=-PI/2; P.legR.rotation.x=-PI/2; };
   if(a==='walk'){ const s=Math.sin(t*11+ph); P.legL.rotation.x=s*.6; P.legR.rotation.x=-s*.6; P.armL.rotation.x=-s*.55; P.armR.rotation.x=s*.55; P.body.position.y=Math.abs(Math.cos(t*11+ph))*.05; P.head.rotation.z=Math.sin(t*5.5+ph)*.05; }
   else if(a==='type'){ sit();
@@ -494,6 +530,10 @@ function animPerson(ch,t,force){
   else if(a==='sleep'){ P.torso.rotation.x=Math.sin(t*1.5+ph)*.025; P.head.rotation.y=Math.sin(t*.3+ph)*.1; }
   else if(a==='mug'){ const sip=Math.sin(t*1.1+ph)>.75; P.armR.rotation.x=sip?-2.1:-1.0; P.head.rotation.x=sip?-.25:0; P.mug.visible=true; }
   else if(a==='board'){ P.armR.rotation.x=-2.4+Math.sin(t*5)*.18; P.armR.rotation.z=Math.sin(t*3)*.25; P.head.rotation.x=-.1; }
+  else if(a==='game'){ sit(); const j=Math.sin(t*22+ph)*.05; P.armR.rotation.x=-1.15+j; P.armL.rotation.x=-1.15-j; P.armR.rotation.z=.42; P.armL.rotation.z=-.42; P.pad.visible=true;
+    P.head.rotation.x=.12; P.torso.rotation.z=Math.sin(t*1.7+ph)>.8? .12 : Math.sin(t*1.7+ph)<-.8? -.12 : 0; P.body.position.y=Math.sin(t*3+ph)>.95?.03:0; }
+  else if(a==='eat'){ if(ch.spot&&ch.spot.pose.sit) sit(); const bite=Math.sin(t*1.6+ph)>.55; P.armR.rotation.x=bite?-2.0:-1.1; P.armR.rotation.z=bite?.25:.1; P.armL.rotation.x=-1.0; P.armL.rotation.z=-.2; P.sticks.visible=true;
+    P.head.rotation.x=bite?-.05:.22; }
   else if(a==='listen'){ sit(); P.armL.rotation.x=-1.0; P.armR.rotation.x=-1.0; P.armL.rotation.z=.25; P.armR.rotation.z=-.25;
     P.head.rotation.x= Math.sin(t*1.3+ph)>.85 ? .18 : .02; P.head.rotation.y= Math.sin(t*.35+ph)*.35; }
   else if(a==='present'){ P.armL.rotation.z=-1.25+Math.sin(t*2.2)*.2; P.armL.rotation.x=-.2; P.armR.rotation.x=-.5+Math.sin(t*3.1)*.35; P.armR.rotation.z=.15;
@@ -534,12 +574,13 @@ function moveChar(ch,dt){
 
 /* ============================ labels ============================ */
 const v3=new THREE.Vector3();
-const ZONES=[['bunk room',2.3,10.0],['big table',11,7.8],['lounge',17.6,16.1],['decks',18.2,6.5],['kitchen',16.6,2.8]].map(([t,x,z])=>{ const el=document.createElement('div'); el.className='zone'; el.textContent=t; labelsBox.appendChild(el); return {el,x,z}; });
+const ZONES=[['bunk room',2.3,10.0],['big table',11,7.8],['lounge',17.6,16.1],['decks',18.2,6.5],['kitchen',19.4,2.6],['ramen bar',2.9,13.9]].map(([t,x,z])=>{ const el=document.createElement('div'); el.className='zone'; el.textContent=t; labelsBox.appendChild(el); return {el,x,z}; });
 function screenPos(x,y,z){ v3.set(x,y,z).project(camera); return [(v3.x+1)/2*stage.clientWidth,(1-v3.y)/2*stage.clientHeight]; }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function iconFor(ch){
   if(ch.kind==='bot') return ch.path.length?'':(ch.state==='off'?'🔌':ch.playing?'🎶':'🎛️');
   if(!ch.posed) return '';
+  if(ch.kind==='person'&&ch.state!=='working') return ACT_ICON[ch.state]||'';
   if(ch.spot.icon) return ch.spot.icon;
   return {sleep:'💤',type:'💻',phone:'📱',listen:'🤝'}[ch.spot.pose.anim]||'';
 }
@@ -577,7 +618,12 @@ function ambient(dt,t){
   L_DJ.intensity= playing? 1.0+beat*0.9 : 0.7;
   DYN.strip.forEach(({m,u})=>{ m.emissive.setHSL(stripHue(u,t),0.95,0.55); m.color.copy(m.emissive); });
   DYN.stripGlows.forEach(({s,u})=>s.material.color.setHSL(stripHue(u,t),0.95,0.55));
-  DYN.tv.emissive.setHSL((t*0.05)%1,0.6,0.4); DYN.tv.color.copy(DYN.tv.emissive);
+  const gaming=CH.some(c=>c.kind==='person'&&c.state==='gaming'&&c.posed);
+  if(gaming){ const f=Math.floor(t*5)%4; DYN.tv.emissive.setHSL([0.33,0.55,0.9,0.12][f],0.85,0.5); DYN.tvGlow.material.opacity=.35+Math.sin(t*9)*.08; }
+  else { DYN.tv.emissive.setHSL((t*0.05)%1,0.6,0.4); DYN.tvGlow.material.opacity=0; }
+  DYN.tv.color.copy(DYN.tv.emissive);
+  const eaters=new Set(CH.filter(c=>c.kind==='person'&&c.state==='eating'&&c.posed&&c.spot.kind==='stool').map(c=>c.spot));
+  DYN.steam.forEach((g,k)=>{ const on=eaters.has(SP.dining[k]); g.material.opacity= on? .25+Math.sin(t*3+k)*.1 : 0; g.position.y=1.3+((t*0.4+k*0.3)%0.25); });
   L_TV.color.copy(DYN.tv.emissive).lerp(tmpC.set(0x5ee7ff),.5); L_TV.intensity=0.7+Math.sin(t*7)*0.08+Math.sin(t*2.3)*0.1;
   DYN.lava.forEach((b,k)=>{ b.position.y=0.76+Math.sin(t*0.6+k*2.1)*0.12; b.position.x=18.35+Math.sin(t*0.9+k)*0.015; });
   DYN.disco.rotation.y+=dt*(playing?1.6:0.25); DYN.disco.material.emissiveIntensity= playing? .35+beat*.4 : .2;
@@ -598,10 +644,27 @@ stage.addEventListener('pointermove',e=>{ if(!ptrs.has(e.pointerId)) return; ptr
   if(drag.moved){ CAM.yaw=Math.min(1.4,Math.max(0.15,drag.yaw-dx*0.006)); CAM.pitch=Math.min(1.1,Math.max(0.35,drag.pitch+dy*0.004)); placeCamera(); } });
 function endPtr(e){ if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId); stage.classList.remove('dragging');
   if(drag&&!drag.moved&&ptrs.size===0&&e.type==='pointerup'){ const r=stage.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ndc,camera);
-    const hits=ray.intersectObjects(CH.filter(c=>c.kind==='person').map(c=>c.g),true); const h=hits.find(x=>x.object.userData.cid&&x.object.isMesh); if(h) openCust(h.object.userData.cid); }
+    const hits=ray.intersectObjects(CH.filter(c=>c.kind==='person').map(c=>c.g),true); const h=hits.find(x=>x.object.userData.cid&&x.object.isMesh); if(h) openQuick(byId(h.object.userData.cid),e.clientX-r.left,e.clientY-r.top); else closeQuick(); }
   if(ptrs.size===0) drag=null; }
 stage.addEventListener('pointerup',endPtr); stage.addEventListener('pointercancel',endPtr);
 stage.addEventListener('wheel',e=>{ e.preventDefault(); CAM.zoom=Math.min(2.6,Math.max(.8,CAM.zoom*(1-e.deltaY*0.0012))); placeCamera(); },{passive:false});
+
+/* ============================ quick menu (click a character) ============================ */
+const quick=document.createElement('div'); quick.className='quick'; quick.hidden=true; stage.appendChild(quick);
+function closeQuick(){ quick.hidden=true; }
+function openQuick(ch,x,y){
+  if(!ch) return;
+  if(MODE==='live'&&!ch.e.me){ closeQuick(); return; }
+  quick.innerHTML=`<div class="quick-head">${esc(ch.e.name)}</div>`;
+  quick.appendChild(activityPicker(ch,{withAsleep:MODE!=='live'}));
+  const fit=document.createElement('button'); fit.className='edit'; fit.textContent='✏️ restyle'; fit.onclick=()=>{ closeQuick(); openCust(ch.id); }; quick.appendChild(fit);
+  quick.hidden=false;
+  const w=stage.clientWidth, h=stage.clientHeight, qw=quick.offsetWidth, qh=quick.offsetHeight;
+  quick.style.left=Math.max(8,Math.min(w-qw-8,x-qw/2))+'px'; quick.style.top=Math.max(8,Math.min(h-qh-8,y-qh-16))+'px';
+  quick.querySelectorAll('.acts button').forEach(b=>b.addEventListener('click',closeQuick));
+}
+quick.addEventListener('pointerdown',e=>e.stopPropagation());
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeQuick(); });
 
 /* ============================ log & simulator ============================ */
 function stamp(){ return new Date().toTimeString().slice(0,8); }
@@ -610,14 +673,15 @@ const vb=(ch,s3,base)=>ch.e.name==='You'?base:s3;
 function logState(ch,a,b){
   const n=ch.e.name;
   if(b==='offline') return log('voiceStateUpdate',`${n} left 🔊 Office`,`${n} ${vb(ch,'logs','log')} off and ${vb(ch,'goes','go')} to bed`);
-  if(a==='offline'&&b==='working') return log('voiceStateUpdate',`${n} joined 🔊 Office`,`${n} ${vb(ch,'wakes','wake')} up and ${vb(ch,'locks','lock')} in at the big table`);
-  if(a==='offline'&&b==='meeting') return log('voiceStateUpdate',`${n} joined 🔊 Office, deafened`,`${n} ${vb(ch,'rolls','roll')} out of bed straight into a meeting with Simon`);
-  if(b==='meeting') return log('voiceStateUpdate',`${n} deafened`,`${n} ${vb(ch,'heads','head')} into a meeting with Simon`);
-  if(b==='working') return log('voiceStateUpdate',`${n} undeafened`,`${n} ${vb(ch,'leaves','leave')} the meeting and ${vb(ch,'locks','lock')} back in`);
+  const what={working:[`${vb(ch,'locks','lock')} in at the big table`],gaming:[`${vb(ch,'grabs','grab')} a controller on the couch`],meeting:[`${vb(ch,'heads','head')} into a meeting with Simon`],eating:[`${vb(ch,'gets','get')} a bowl of ramen at the bar`],phone:[`${vb(ch,'flops','flop')} onto a beanbag to scroll`]}[b];
+  if(!what) return;
+  if(a==='offline') return log('voiceStateUpdate',`${n} joined 🔊 Office`,`${n} ${vb(ch,'wakes','wake')} up and ${what[0]}`);
+  return log('activity',`${n} → ${b}`,`${n} ${what[0]}`);
 }
 function rowSub(ch){
   if(ch.kind==='bot') return ch.state==='off'?'not in the call · charging':ch.playing?`in call · playing ${ch.e.song}`:'in call · on the decks';
-  return {offline:'not in the call · sleeping',working:'in the call · locked in',meeting:'deafened · in a meeting with Simon'}[ch.state];
+  const sub={offline:'not in the call · sleeping',working:'locked in at the big table',gaming:'gaming on the couch',meeting:'in a meeting with Simon',eating:'eating ramen at the bar',phone:'scrolling on a beanbag'}[ch.state]||'';
+  return ch.live&&ch.live.deafened&&ch.state!=='offline' ? sub+' · deafened' : sub;
 }
 function renderRows(){
   const box=$('rows'); box.innerHTML='';
@@ -630,15 +694,45 @@ function renderRows(){
     else { b.textContent=ch.playing?'⏸ stop':'▶ play'; b.disabled=ch.state!=='on'; b.onclick=()=>setPlaying(ch,!ch.playing); }
     const live=MODE==='live';
     if(!live || (ch.kind==='person'&&ch.e.me)) r.appendChild(b); else r.appendChild(document.createElement('span'));
-    const seg=document.createElement('div'); seg.className='seg'+(ch.kind==='bot'?' two':''); seg.setAttribute('role','group'); seg.setAttribute('aria-label',`${ch.e.name} status`);
-    const opts= ch.kind==='bot'? [['off','🔌 not in call'],['on','🎛️ in call']] : [['offline','💤 asleep'],['working','💻 locked in'],['meeting','🤝 w/ simon']];
-    opts.forEach(([s,l])=>{ const o=document.createElement('button'); o.dataset.s=s; o.textContent=l; o.setAttribute('aria-pressed',ch.state===s);
-      if(live){ o.disabled=true; o.title='Set by Discord'; }
-      else o.onclick=()=>{ ch.kind==='bot'? setBot(ch,s==='on') : setState(ch,s); }; seg.appendChild(o); });
-    r.appendChild(seg); box.appendChild(r);
+    const mine= ch.kind==='person' && (!live || ch.e.me);
+    if(ch.kind==='bot' && !live){
+      const seg=document.createElement('div'); seg.className='seg two'; seg.setAttribute('role','group'); seg.setAttribute('aria-label',`${ch.e.name} status`);
+      [['off','🔌 not in call'],['on','🎛️ in call']].forEach(([s,l])=>{ const o=document.createElement('button'); o.dataset.s=s; o.textContent=l; o.setAttribute('aria-pressed',ch.state===s); o.onclick=()=>setBot(ch,s==='on'); seg.appendChild(o); });
+      r.appendChild(seg);
+    } else if(mine){
+      r.appendChild(activityPicker(ch,{withAsleep:!live}));
+      if(live) r.appendChild(deafenToggle(ch));
+    }
+    box.appendChild(r);
   });
   const c=s=>CH.filter(x=>x.kind==='person'&&x.state===s).length, bots=CH.filter(x=>x.kind==='bot'&&x.state==='on').length;
-  $('counts').innerHTML=`<b>${c('working')}</b> locked in · <b>${c('meeting')}</b> with Simon · <b>${c('offline')}</b> asleep · <b>${bots}</b> ${bots===1?'bot':'bots'} in call`;
+  const parts=ACTS.map(([k,ic])=>c(k)?`${ic} <b>${c(k)}</b>`:'').filter(Boolean);
+  $('counts').innerHTML=`${parts.join(' · ')||'nobody in the call'} · 💤 <b>${c('offline')}</b> asleep · <b>${bots}</b> ${bots===1?'bot':'bots'} in call`;
+}
+// The activity buttons: your own row (or everyone's in demo mode)
+function pickActivity(ch,act){
+  if(MODE==='live'){
+    if(!ch.e.me) return;
+    if(ch.state==='offline'){ log('activity','join the voice call first, then pick what you are doing'); return; }
+    if(!API.onPickActivity||!API.onPickActivity(act)){ log('activity','not connected to office-bot right now, try again in a moment'); return; }
+    setState(ch,act,{quiet:true});
+  } else setState(ch,act);
+}
+function activityPicker(ch,{withAsleep}){
+  const seg=document.createElement('div'); seg.className='seg acts'+(withAsleep?' six':''); seg.setAttribute('role','group'); seg.setAttribute('aria-label',`What ${ch.e.name} is doing`);
+  const list= withAsleep? [['offline','💤','asleep'],...ACTS] : ACTS;
+  const off= MODE==='live' && ch.state==='offline';
+  list.forEach(([s,ic,l])=>{ const o=document.createElement('button'); o.dataset.s=s; o.innerHTML=`<span aria-hidden="true">${ic}</span>${l}`; o.setAttribute('aria-pressed',ch.state===s);
+    if(off){ o.disabled=true; o.title='Join the voice call to pick'; } else o.onclick=()=>pickActivity(ch,s); seg.appendChild(o); });
+  if(off){ const n=document.createElement('small'); n.className='pick-note'; n.textContent='Join the voice call to pick what you are doing.'; seg.appendChild(n); }
+  return seg;
+}
+function deafenToggle(ch){
+  const on= !ch.live || ch.live.deafenMeeting!==false;
+  const lab=document.createElement('label'); lab.className='toggle';
+  lab.innerHTML=`<input type="checkbox" id="deafenToggle" ${on?'checked':''}><span class="sw-ui" aria-hidden="true"></span><span>Deafening puts me in a meeting with Simon</span>`;
+  lab.querySelector('input').onchange=e=>{ const v=e.target.checked; ch.live={...(ch.live||{}),deafenMeeting:v}; if(!API.onSetPrefs||!API.onSetPrefs({deafenMeeting:v})) log('activity','not connected to office-bot right now, try again in a moment'); };
+  return lab;
 }
 let demoTimers=[];
 $('demo').onclick=()=>{
@@ -647,7 +741,7 @@ $('demo').onclick=()=>{
   $('log').innerHTML=''; log('demo','lights out, nobody in the call yet'); renderRows();
   const P=id=>byId(id);
   [[600,()=>setState(P('mia'),'working')],[2200,()=>setState(P('dan'),'working')],[3800,()=>setBot(P('dj'),true)],[6200,()=>setPlaying(P('dj'),true)],
-   [7400,()=>setState(P('you'),'working')],[11000,()=>setState(P('dan'),'meeting')],[13000,()=>setState(P('zee'),'working')],[19000,()=>setState(P('dan'),'working')],[24000,()=>setState(P('mia'),'offline')]]
+   [7400,()=>setState(P('you'),'working')],[10000,()=>setState(P('dan'),'eating')],[12000,()=>setState(P('zee'),'gaming')],[15000,()=>setState(P('mia'),'meeting')],[19000,()=>setState(P('you'),'phone')],[23000,()=>setState(P('dan'),'working')],[27000,()=>setState(P('mia'),'offline')]]
    .forEach(([ms,fn])=>demoTimers.push(setTimeout(fn,ms)));
 };
 $('allSleep').onclick=()=>{ demoTimers.forEach(clearTimeout); demoTimers=[]; CH.forEach(ch=>{ if(ch.kind==='bot') setBot(ch,false); else setState(ch,'offline'); }); };
@@ -771,13 +865,13 @@ function applyLive(snap,{looks={},meId=null}={}){
       crew.map((c,i)=>({id:c.id,name:c.name,me:c.id===meId,bed:i,seat:PREF_SEATS[i],look:{...(looks[c.id]||DEFAULT_LOOKS[i%DEFAULT_LOOKS.length])}})),
       bots.map((b,i)=>({id:b.id,name:b.name,color:BOT_COLORS[i],song:'music'})));
     CH.forEach(ch=>{
-      if(ch.kind==='person') setState(ch,crew.find(c=>c.id===ch.id).state,{instant:true,quiet:true});
+      if(ch.kind==='person'){ const c=crew.find(x=>x.id===ch.id); ch.live={deafened:!!c.deafened,deafenMeeting:c.deafenMeeting!==false,pick:c.pick||null}; setState(ch,c.state,{instant:true,quiet:true}); }
       else { const on=bots.find(b=>b.id===ch.id).state==='on'; setBot(ch,on,{instant:true,quiet:true}); setPlaying(ch,on,{quiet:true}); }
     });
     $('log').innerHTML=''; log('live',`connected to ${snap.channel?'🔊 '+snap.channel:'Discord'}`,'showing who is really there');
   } else {
     CH.forEach(ch=>{
-      if(ch.kind==='person'){ const c=crew.find(x=>x.id===ch.id); if(c.name!==ch.e.name){ ch.e.name=c.name; ch.lblKey=''; } setState(ch,c.state); }
+      if(ch.kind==='person'){ const c=crew.find(x=>x.id===ch.id); if(c.name!==ch.e.name){ ch.e.name=c.name; ch.lblKey=''; } ch.live={deafened:!!c.deafened,deafenMeeting:c.deafenMeeting!==false,pick:c.pick||null}; setState(ch,c.state); }
       else { const on=bots.find(x=>x.id===ch.id).state==='on'; if((ch.state==='on')!==on){ setBot(ch,on); setPlaying(ch,on,{quiet:true}); } }
     });
   }
@@ -789,7 +883,7 @@ const NOTES={
   'not-crew':'You are logged in, but your Discord account is not on the crew list (CREW_USER_IDS).',
   'no-bot':'Logged in, but the bot address is not set yet (BOT_LIVE_URL in Vercel). Showing the demo.',
   'connecting':'Logged in. Connecting to office-bot… (if this sticks, check the bot is running). Showing the demo meanwhile.',
-  'live':'Live from Discord: people move when they join, deafen or leave the voice channel. Tap ✏️ fit to restyle yourself.',
+  'live':'Live from Discord. Pick what you are doing below or tap yourself in the room. Everyone sees it instantly.',
 };
 function setMode(mode,{reason,user}={}){
   MODE=mode==='live'?'live':'demo';
@@ -806,7 +900,7 @@ function setLiveStatus(status){
   if(status==='live'){ chip.textContent='● live'; chip.className='mode-chip live'; }
   else { chip.textContent='reconnecting…'; chip.className='mode-chip wait'; }
 }
-const API={setMode,applyLive,setLiveStatus,onSaveLook:null,
+const API={setMode,applyLive,setLiveStatus,onSaveLook:null,onPickActivity:null,onSetPrefs:null,
   debug:{CH,step:(n=1,dt=.05)=>{ for(let i=0;i<n;i++) tick(dt); renderer.render(scene,camera); updateLabels(0); },setState:(id,s)=>setState(byId(id),s),CAM,placeCamera}};
 window.Office=API;
 
@@ -814,12 +908,12 @@ PEOPLE.forEach(p=>makeChar(p,'person'));
 BOTS.forEach(b=>makeChar(b,'bot'));
 makeChar({id:'simon',name:'Simon',look:{skin:'#f1c27d',hairStyle:'short',hair:'#5a4636',topStyle:'hoodie',top:'#2b2438',pants:'#3d405b',hat:'none',hatColor:'#ffd166',glasses:'round'}},'npc',NPCS);
 resize();
-const S0={you:'offline',mia:'working',dan:'working',zee:'meeting'};
+const S0={you:'offline',mia:'working',dan:'eating',zee:'gaming'};
 CH.forEach(ch=>{ if(ch.kind==='person') setState(ch,S0[ch.id],{instant:true,quiet:true}); else setBot(ch,ch.id==='dj',{instant:true,quiet:true}); });
 setPlaying(byId('dj'),true,{quiet:true});
 updateMeeting(true);
 log('ready','watching 🔊 Office in The Crew');
-log('voiceStateUpdate','Mia and Dan are in the call, Zee is deafened, DJ Bot is playing','placed at the table, in the meeting with Simon, and at the decks');
+log('voiceStateUpdate','Mia is working, Dan is eating, Zee is gaming, DJ Bot is playing','placed at the table, ramen bar, couch and decks');
 renderRows();
 requestAnimationFrame(frame);
 })();

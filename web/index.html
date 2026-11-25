@@ -15,7 +15,7 @@
   <header class="top">
     <div>
       <h1>crew <span>office</span></h1>
-      <p>The late-night hangout for your voice call. Join and you wake up and lock in at the big table. Deafen and you're in a meeting with Simon. Leave and it's lights out.</p>
+      <p>The late-night hangout for your voice call. Join the call and you wake up. Pick what you're doing (working, gaming, a meeting with Simon, eating or scrolling) and your character goes there. Leave and it's lights out.</p>
     </div>
     <div class="mode-bar">
       <span class="mode-chip" id="modeChip">demo</span>
@@ -23,7 +23,7 @@
       <a class="btn" id="logoutBtn" href="/api/auth/logout" hidden>log out</a>
     </div>
     <div class="legend" aria-label="What each place means">
-      <span>💤 bunk = not in call</span><span>💻 big table = locked in</span><span>🤝 meeting room = deafened</span>
+      <span>💤 bunk = not in call</span><span>💻 working</span><span>🎮 gaming</span><span>🤝 meeting</span><span>🍜 eating</span><span>📱 phone</span>
     </div>
   </header>
 
@@ -32,7 +32,7 @@
       <div class="stage" id="stage">
         <canvas id="c3d" aria-label="3D view of the shared office at night"></canvas>
         <div class="labels" id="labels"></div>
-        <div class="hint">drag to turn · scroll or pinch to zoom · tap someone to restyle them</div>
+        <div class="hint">drag to turn · scroll or pinch to zoom · tap yourself to pick an activity</div>
       </div>
       <div class="stage-foot"><span id="counts"></span><span>office-bot is watching 🔊 Office</span></div>
     </div>
@@ -54,10 +54,11 @@
       <div class="card">
         <h2>house rules</h2>
         <ul class="rules">
-          <li><span>💤</span><div><b>Not in the call</b><small>Asleep in your bunk under fairy lights, blanket in your fit's colour.</small></div></li>
-          <li><span>💻</span><div><b>In the call: locked in</b><small>Working together at the big table. Sometimes someone grabs a coffee, scribbles on the board or takes a phone break on the couch.</small></div></li>
-          <li><span>🤝</span><div><b>Deafened: in a meeting with Simon</b><small>You walk into the glass meeting room. Simon gets up and presents at the screen, and the "in meeting" sign lights up until everyone's out.</small></div></li>
-          <li><span>🤖</span><div><b>Music bots</b><small>On the decks while they're in the call, so the speakers thump and the disco ball spins. Otherwise they're charging.</small></div></li>
+          <li><span>💤</span><div><b>Not in the call</b><small>Asleep in your bunk under fairy lights. Discord decides this, not you.</small></div></li>
+          <li><span>👆</span><div><b>In the call, you pick</b><small>Use your row on the right or tap yourself in the room: 💻 working at the big table, 🎮 gaming on the couch, 🤝 meeting with Simon, 🍜 ramen at the bar or 📱 scrolling on a beanbag.</small></div></li>
+          <li><span>🎧</span><div><b>Deafen shortcut</b><small>Deafening sends you to the meeting with Simon, and undeafening brings you back. Switch it off on your row if you deafen for other reasons.</small></div></li>
+          <li><span>🔄</span><div><b>Fresh start</b><small>Leaving the call resets you, so next time you join you start as 💻 working.</small></div></li>
+          <li><span>🤖</span><div><b>Music bots</b><small>On the decks while they're in the call, otherwise charging on their dock.</small></div></li>
         </ul>
       </div>
     </aside>

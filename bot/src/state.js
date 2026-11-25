@@ -1,10 +1,27 @@
-// Turns a Discord voice state into an office state.
-//   not in the watched channel -> 'offline' (asleep in their bunk)
-//   in the channel, deafened   -> 'meeting' (in the meeting room with Simon)
-//   in the channel             -> 'working' (locked in at the big table)
+// What each crew member is doing in the office.
+//
+// Discord decides whether you're here at all:
+//   not in the watched voice channel -> 'offline' (asleep in your bunk)
+// While you're in the call, you pick your activity in the app:
+//   'working' (default) | 'gaming' | 'meeting' | 'eating' | 'phone'
+// Deafening is a shortcut to 'meeting' (each person can switch that off).
+// Picking something by hand while deafened wins until you deafen/undeafen again.
+export const ACTIVITIES = ['working', 'gaming', 'meeting', 'eating', 'phone'];
+
+export function resolveActivity({ inChannel, deafened = false, pick = null, deafenMeeting = true, override = false }) {
+  if (!inChannel) return 'offline';
+  if (deafened && deafenMeeting && !override) return 'meeting';
+  return ACTIVITIES.includes(pick) ? pick : 'working';
+}
+
+export function voiceFacts(voiceState, channelId) {
+  const inChannel = Boolean(voiceState) && voiceState.channelId === channelId;
+  return { inChannel, deafened: inChannel && Boolean(voiceState.selfDeaf || voiceState.serverDeaf) };
+}
+
+// Kept for simple checks: Discord facts only, no picks.
 export function memberState(voiceState, channelId) {
-  if (!voiceState || voiceState.channelId !== channelId) return 'offline';
-  return voiceState.selfDeaf || voiceState.serverDeaf ? 'meeting' : 'working';
+  return resolveActivity(voiceFacts(voiceState, channelId));
 }
 
 // Music bots are either in the call (at the decks) or not (charging on their dock).
