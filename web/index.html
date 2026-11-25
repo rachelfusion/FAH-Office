@@ -48,9 +48,9 @@
         <canvas id="c3d" aria-label="3D view of the shared office at night"></canvas>
         <div class="labels" id="labels"></div>
         <div class="hint">drag to move · shift-drag or right-drag to turn · scroll or pinch to zoom · tap yourself to pick</div>
-        <button class="lights-btn" id="lightsBtn" aria-pressed="false">💡 lights on</button>
+        <button class="lights-btn" id="lightsBtn" aria-pressed="false">💡<span class="vl"> lights on</span></button>
         <div class="views" id="views" role="group" aria-label="Camera view">
-          <button data-v="office" aria-pressed="true">🏢 office</button><button data-v="cafe" aria-pressed="false">☕ café</button><button data-v="shops" aria-pressed="false">🛍️ shops</button><button data-v="all" aria-pressed="false">🗺️ all</button><button data-rot="1" aria-label="Rotate left">↺</button><button data-rot="-1" aria-label="Rotate right">↻</button>
+          <button data-v="office" aria-pressed="true" aria-label="Office">🏢<span class="vl"> office</span></button><button data-v="cafe" aria-pressed="false" aria-label="Café">☕<span class="vl"> café</span></button><button data-v="shops" aria-pressed="false" aria-label="Shops">🛍️<span class="vl"> shops</span></button><button data-v="all" aria-pressed="false" aria-label="Everything">🗺️<span class="vl"> all</span></button><button data-rot="1" aria-label="Rotate left">↺</button><button data-rot="-1" aria-label="Rotate right">↻</button>
         </div>
       </div>
       <div class="stage-foot"><span id="counts"></span><span>office-bot is watching 🔊 Office</span></div>
@@ -82,6 +82,7 @@
       </div>
     </aside>
   </div>
+  <nav class="m-bar" id="mBar" hidden aria-label="What you are doing"></nav>
 </div>
 
 <div class="modal-back" id="modal" hidden>

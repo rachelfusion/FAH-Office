@@ -867,6 +867,19 @@ function rowSub(ch){
   if(ch.live&&ch.live.inCall===false&&ch.state!=='offline') return sub+' · not in the call';
   return ch.live&&ch.live.deafened&&ch.state!=='offline' ? sub+' · deafened' : sub;
 }
+function renderMobileBar(){
+  const bar=$('mBar'); if(!bar) return;
+  const me= MODE==='live' ? CH.find(c=>c.kind==='person'&&c.e.me) : byId('you');
+  bar.innerHTML='';
+  if(!me){ bar.hidden=true; return; }
+  bar.hidden=false;
+  const head=document.createElement('div'); head.className='m-me';
+  head.innerHTML=`<img alt="" src="${portrait(me.e.look)}"><div class="m-who"><b>${esc(me.e.name)}</b><small>${esc(rowSub(me))}</small></div>`;
+  const fit=document.createElement('button'); fit.className='edit'; fit.textContent='✏️ fit'; fit.setAttribute('aria-label','Restyle your character'); fit.onclick=()=>openCust(me.id); head.appendChild(fit);
+  bar.appendChild(head);
+  bar.appendChild(activityPicker(me,{withAsleep:MODE!=='live'}));
+  document.documentElement.style.setProperty('--mbar-h',bar.offsetHeight+'px');
+}
 function renderRows(){
   const box=$('rows'); box.innerHTML='';
   CH.forEach(ch=>{
@@ -890,6 +903,7 @@ function renderRows(){
     box.appendChild(r);
   });
   const c=s=>CH.filter(x=>x.kind==='person'&&x.state===s).length, bots=CH.filter(x=>x.kind==='bot'&&x.state==='on').length;
+  renderMobileBar();
   const parts=ACTS.map(([k,ic])=>c(k)?`${ic} <b>${c(k)}</b>`:'').filter(Boolean);
   $('counts').innerHTML=`${parts.join(' · ')||'nobody in the call'} · 💤 <b>${c('offline')}</b> asleep · <b>${bots}</b> ${bots===1?'bot':'bots'} in call`;
 }
@@ -1037,7 +1051,7 @@ function applyLights(k){
 function setLights(on){
   LIGHTS.on=on;
   try{ localStorage.setItem('fah-lights',on?'on':'off'); }catch(_){}
-  const b=$('lightsBtn'); if(b){ b.setAttribute('aria-pressed',on); b.textContent=on?'🌙 lights off':'💡 lights on'; }
+  const b=$('lightsBtn'); if(b){ b.setAttribute('aria-pressed',on); b.innerHTML=on?'🌙<span class="vl"> lights off</span>':'💡<span class="vl"> lights on</span>'; }
 }
 function tickLights(dt){
   const target=LIGHTS.on?1:0;
@@ -1051,17 +1065,25 @@ setLights(LIGHTS.on);
 
 /* ============================ views: office / outside / all ============================ */
 const VIEWS={office:{t:[11,0,8.4],z:1},cafe:{t:[6.8,0,18.8],z:1.25},shops:{t:[29.4,0,7.2],z:0.98},all:{t:[17.6,0,10.8],z:0.52}};
+// On a tall phone screen the camera turns so the long office + street strip runs top to bottom.
+const PHONE_VIEWS={office:{t:[11,0,8.2],z:1.5,yaw:1.3,pitch:.85},cafe:{t:[6.8,0,19.2],z:1.9,yaw:1.3,pitch:.85},shops:{t:[29.6,0,7.6],z:1.45,yaw:1.3,pitch:.85},all:{t:[15.2,0,11.4],z:1.06,yaw:1.3,pitch:.85}};
+const phoneMQ=window.matchMedia('(max-width: 700px)');
+const tallPhone=()=> phoneMQ.matches && stage.clientHeight>stage.clientWidth*1.05;
 let viewGoal=null, currentView='office';
 function setView(v){
-  const V=VIEWS[v]; if(!V) return; currentView=v;
-  viewGoal={t:new THREE.Vector3(...V.t),z:V.z};
+  const V=(tallPhone()?PHONE_VIEWS:VIEWS)[v]; if(!V) return; currentView=v;
+  viewGoal={t:new THREE.Vector3(...V.t),z:V.z,yaw:V.yaw??0.72,pitch:V.pitch??0.62};
   document.querySelectorAll('#views button[data-v]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
 }
 function tickView(dt){
   if(!viewGoal) return;
-  const k=Math.min(1,dt*4); CAM.target.lerp(viewGoal.t,k); CAM.zoom+=(viewGoal.z-CAM.zoom)*k; placeCamera();
-  if(CAM.target.distanceTo(viewGoal.t)<0.01&&Math.abs(CAM.zoom-viewGoal.z)<0.002){ CAM.target.copy(viewGoal.t); CAM.zoom=viewGoal.z; placeCamera(); viewGoal=null; }
+  const k=Math.min(1,dt*4), G=viewGoal; CAM.target.lerp(G.t,k); CAM.zoom+=(G.z-CAM.zoom)*k; CAM.yaw+=(G.yaw-CAM.yaw)*k; CAM.pitch+=(G.pitch-CAM.pitch)*k; placeCamera();
+  if(CAM.target.distanceTo(G.t)<0.01&&Math.abs(CAM.zoom-G.z)<0.002&&Math.abs(CAM.yaw-G.yaw)<0.002&&Math.abs(CAM.pitch-G.pitch)<0.002){ CAM.target.copy(G.t); CAM.zoom=G.z; CAM.yaw=G.yaw; CAM.pitch=G.pitch; placeCamera(); viewGoal=null; }
 }
+// Phones start with everything in view; switching between phone and desktop re-frames the current view.
+if(phoneMQ.matches) setTimeout(()=>setView('all'),50);
+phoneMQ.addEventListener&&phoneMQ.addEventListener('change',()=>{ setView(phoneMQ.matches?'all':'office'); renderMobileBar(); });
+new ResizeObserver(()=>{ const bar=$('mBar'); if(bar&&!bar.hidden) document.documentElement.style.setProperty('--mbar-h',bar.offsetHeight+'px'); }).observe($('mBar'));
 document.querySelectorAll('#views button').forEach(b=>{ b.addEventListener('pointerdown',e=>e.stopPropagation()); b.onclick=()=>{ if(b.dataset.rot){ CAM.yaw=clampYaw(CAM.yaw+Number(b.dataset.rot)*0.3); placeCamera(); } else setView(b.dataset.v); }; });
 
 function tick(dt){ TT+=dt; tickLights(dt); tickView(dt); tickCars(dt); updateMeeting(); ALL().forEach(ch=>{ moveChar(ch,dt); aiTick(ch,dt); ch.kind==='bot'?animBot(ch,TT):animPerson(ch,TT); }); ambient(dt,TT);
