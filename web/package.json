@@ -1,0 +1,10 @@
+{
+  "name": "fah-office-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The 3D office page plus Vercel functions for Discord login and saved looks.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  }
+}

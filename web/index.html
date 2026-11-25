@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crew Office</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=DM+Sans:wght@400;500;600;700&family=Pacifico&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>crew <span>office</span></h1>
+      <p>The late-night hangout for your voice call. Join and you wake up and lock in at the big table. Deafen and you're doomscrolling on the couch. Leave and it's lights out.</p>
+    </div>
+    <div class="mode-bar">
+      <span class="mode-chip" id="modeChip">demo</span>
+      <a class="btn primary" id="loginBtn" href="/api/auth/login" hidden>Log in with Discord</a>
+      <a class="btn" id="logoutBtn" href="/api/auth/logout" hidden>log out</a>
+    </div>
+    <div class="legend" aria-label="What each place means">
+      <span>💤 bunk = not in call</span><span>💻 big table = locked in</span><span>📱 couch = afk</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="stage-card">
+      <div class="stage" id="stage">
+        <canvas id="c3d" aria-label="3D view of the shared office at night"></canvas>
+        <div class="labels" id="labels"></div>
+        <div class="hint">drag to turn · scroll or pinch to zoom · tap someone to restyle them</div>
+      </div>
+      <div class="stage-foot"><span id="counts"></span><span>office-bot is watching 🔊 Office</span></div>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <h2>who's here</h2>
+        <p class="p" id="rowsNote">Pretend to be Discord: switch what each person is doing and watch them move.</p>
+        <div id="rows"></div>
+        <div class="actions" id="demoActions">
+          <button class="btn primary" id="demo">▶ play demo</button>
+          <button class="btn" id="allSleep">everyone logs off</button>
+        </div>
+      </div>
+      <div class="botlog">
+        <div class="botlog-head"><span>office-bot · live log</span><span>● online</span></div>
+        <div class="log" id="log" aria-live="polite"></div>
+      </div>
+      <div class="card">
+        <h2>house rules</h2>
+        <ul class="rules">
+          <li><span>💤</span><div><b>Not in the call</b><small>Asleep in your bunk under fairy lights, blanket in your fit's colour.</small></div></li>
+          <li><span>💻</span><div><b>In the call: locked in</b><small>Working together at the big table. Sometimes someone grabs a coffee or scribbles on the board.</small></div></li>
+          <li><span>📱</span><div><b>AFK</b><small>Couch or beanbag, phone out. In Discord that's when you deafen yourself.</small></div></li>
+          <li><span>🤖</span><div><b>Music bots</b><small>On the decks while they're in the call, so the speakers thump and the disco ball spins. Otherwise they're charging.</small></div></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="modal-back" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="m-head">
+      <h2 id="mTitle">fit check</h2>
+      <div class="tabs" id="tabs" role="tablist"></div>
+    </div>
+    <div class="m-body">
+      <div class="m-prev"><canvas id="prev" width="500" height="600"></canvas><button class="btn" id="rand">🎲 surprise me</button></div>
+      <div class="m-ctrl" id="ctrl"></div>
+    </div>
+    <div class="m-foot">
+      <small>Saved in this browser for now. The real version saves it to your Discord account.</small>
+      <div><button class="btn" id="mCancel">cancel</button><button class="btn primary" id="mSave">save looks</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="/office.js"></script>
+<script src="/live.js"></script>
+</body>
+</html>
