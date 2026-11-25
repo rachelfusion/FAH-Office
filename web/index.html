@@ -30,7 +30,7 @@
   <header class="top">
     <div>
       <h1>crew <span>office</span></h1>
-      <p>The late-night hangout for your voice call. Join the call and you wake up. Pick what you're doing (working, gaming, a meeting with Simon, eating or scrolling) and your character goes there. Leave and it's lights out.</p>
+      <p>The late-night hangout for your voice call. Join the call and you wake up. Pick what you're doing (working, gaming, a meeting with Simon, eating, scrolling, or heading out to the café and shops) and your character goes there. Leave and it's lights out.</p>
     </div>
     <div class="mode-bar">
       <span class="mode-chip" id="modeChip">demo</span>
@@ -38,7 +38,7 @@
       <a class="btn" id="logoutBtn" href="/api/auth/logout" hidden>log out</a>
     </div>
     <div class="legend" aria-label="What each place means">
-      <span>💤 bunk = not in call</span><span>💻 working</span><span>🎮 gaming</span><span>🤝 meeting</span><span>🍜 eating</span><span>📱 phone</span>
+      <span>💤 bunk = not in call</span><span>💻 working</span><span>🎮 gaming</span><span>🤝 meeting</span><span>🍜 eating</span><span>📱 phone</span><span>☕ café</span><span>🛍️ out</span>
     </div>
   </header>
 
@@ -49,6 +49,9 @@
         <div class="labels" id="labels"></div>
         <div class="hint">drag to turn · scroll or pinch to zoom · tap yourself to pick an activity</div>
         <button class="lights-btn" id="lightsBtn" aria-pressed="false">💡 lights on</button>
+        <div class="views" id="views" role="group" aria-label="Camera view">
+          <button data-v="office" aria-pressed="true">🏢 office</button><button data-v="outside" aria-pressed="false">🌆 outside</button><button data-v="all" aria-pressed="false">🗺️ all</button>
+        </div>
       </div>
       <div class="stage-foot"><span id="counts"></span><span>office-bot is watching 🔊 Office</span></div>
     </div>
@@ -71,7 +74,7 @@
         <h2>house rules</h2>
         <ul class="rules">
           <li><span>💤</span><div><b>Not in the call</b><small>Asleep in your bunk under fairy lights. Discord decides this, not you.</small></div></li>
-          <li><span>👆</span><div><b>In the call, you pick</b><small>Use your row on the right or tap yourself in the room: 💻 working at the big table, 🎮 gaming on the couch, 🤝 meeting with Simon, 🍜 ramen at the bar or 📱 scrolling on a beanbag.</small></div></li>
+          <li><span>👆</span><div><b>In the call, you pick</b><small>Use your row on the right or tap yourself in the room: 💻 working at the big table, 🎮 gaming on the couch, 🤝 meeting with Simon, 🍜 ramen at the bar, 📱 scrolling on a beanbag, ☕ working from Moon Café across the street, or 🛍️ out at the shops.</small></div></li>
           <li><span>🎧</span><div><b>Deafen shortcut</b><small>Deafening sends you to the meeting with Simon, and undeafening brings you back. Switch it off on your row if you deafen for other reasons.</small></div></li>
           <li><span>🔄</span><div><b>Fresh start</b><small>Leaving the call resets you, so next time you join you start as 💻 working.</small></div></li>
           <li><span>🤖</span><div><b>Music bots</b><small>On the decks while they're in the call, otherwise charging on their dock.</small></div></li>

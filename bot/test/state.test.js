@@ -47,3 +47,8 @@ test('voice facts only count deafened inside the channel', () => {
   assert.deepEqual(voiceFacts({ channelId: '999', selfDeaf: true }, CH), { inChannel: false, deafened: false });
   assert.deepEqual(voiceFacts(undefined, CH), { inChannel: false, deafened: false });
 });
+
+test('outside activities are valid picks', () => {
+  assert.equal(resolveActivity({ inChannel: true, pick: 'cafe' }), 'cafe');
+  assert.equal(resolveActivity({ inChannel: true, pick: 'out' }), 'out');
+});

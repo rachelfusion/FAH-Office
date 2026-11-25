@@ -3,10 +3,10 @@
 // Discord decides whether you're here at all:
 //   not in the watched voice channel -> 'offline' (asleep in your bunk)
 // While you're in the call, you pick your activity in the app:
-//   'working' (default) | 'gaming' | 'meeting' | 'eating' | 'phone'
+//   'working' (default) | 'cafe' | 'gaming' | 'meeting' | 'eating' | 'phone' | 'out'
 // Deafening is a shortcut to 'meeting' (each person can switch that off).
 // Picking something by hand while deafened wins until you deafen/undeafen again.
-export const ACTIVITIES = ['working', 'gaming', 'meeting', 'eating', 'phone'];
+export const ACTIVITIES = ['working', 'cafe', 'gaming', 'meeting', 'eating', 'phone', 'out'];
 
 export function resolveActivity({ inChannel, deafened = false, pick = null, deafenMeeting = true, override = false }) {
   if (!inChannel) return 'offline';

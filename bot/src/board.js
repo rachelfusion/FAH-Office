@@ -3,10 +3,12 @@ export const BOARD_FOOTER = 'office-bot live board · updates by itself';
 
 const GROUPS = [
   ['working', '💻', 'Working'],
+  ['cafe', '☕', 'Working from Moon Café'],
   ['gaming', '🎮', 'Gaming'],
   ['meeting', '🤝', 'In a meeting with Simon'],
   ['eating', '🍜', 'Eating ramen'],
   ['phone', '📱', 'Scrolling'],
+  ['out', '🛍️', 'Out at the shops'],
   ['offline', '💤', 'Asleep'],
 ];
 

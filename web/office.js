@@ -36,7 +36,7 @@ let renderer;
 try{ renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true}); }
 catch(e){ stage.insertAdjacentHTML('beforeend','<div class="nogl">Your browser could not start 3D graphics (WebGL).</div>'); return; }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.localClippingEnabled=true;
 const scene=new THREE.Scene();
 const camera=new THREE.OrthographicCamera(-1,1,1,-1,0.1,200);
 const CAM={yaw:0.72,pitch:0.62,zoom:1,target:new THREE.Vector3(11,0,8.4)};
@@ -55,9 +55,9 @@ new ResizeObserver(resize).observe(stage);
 // low, moody light: dim purple ambience + moonlight + coloured pools
 const HEMI=new THREE.HemisphereLight(0x8a7bff,0x1a1024,0.5); scene.add(HEMI);
 const moon=new THREE.DirectionalLight(0x9aa8ff,0.32);
-moon.position.set(-4,26,-6); moon.target.position.set(11,0,8); scene.add(moon,moon.target);
+moon.position.set(4,30,-8); moon.target.position.set(18,0,8); scene.add(moon,moon.target);
 moon.castShadow=true; moon.shadow.mapSize.set(2048,2048);
-Object.assign(moon.shadow.camera,{left:-22,right:22,top:22,bottom:-22,near:1,far:90}); moon.shadow.bias=-0.0006;
+Object.assign(moon.shadow.camera,{left:-28,right:28,top:28,bottom:-28,near:1,far:100}); moon.shadow.bias=-0.0006;
 const fill=new THREE.DirectionalLight(0xffd6f0,0.16); fill.position.set(30,20,30); scene.add(fill);
 function plight(c,i,d,x,y,z){ const l=new THREE.PointLight(c,i,d,1.4); l.position.set(x,y,z); scene.add(l); return l; }
 const L_BUNK=plight(0xffa95e,1.3,8,2.6,2.2,5);
@@ -112,7 +112,7 @@ function neon(text,color,w,h,font){
 }
 
 /* ============================ nav grid ============================ */
-const CELL=0.5, GW=44, GD=32, NAV=new Uint8Array(GW*GD).fill(1);
+const CELL=0.5, GW=73, GD=32, NAV=new Uint8Array(GW*GD).fill(1);
 for(let i=0;i<GW;i++) NAV[i]=0; for(let j=0;j<GD;j++) NAV[j*GW]=0;
 function blockArea(x0,z0,x1,z1,pad=0.2){ for(let j=0;j<GD;j++) for(let i=0;i<GW;i++){ const cx=(i+.5)*CELL, cz=(j+.5)*CELL; if(cx>x0-pad&&cx<x1+pad&&cz>z0-pad&&cz<z1+pad) NAV[j*GW+i]=0; } }
 function solid(x0,z0,x1,z1,y0,y1,c,o){ blockArea(x0,z0,x1,z1); return BB(x0,z0,x1,z1,y0,y1,c,o); }
@@ -134,7 +134,7 @@ function findPath(from,to){
 }
 
 /* ============================ the room ============================ */
-const SP={beds:[],seats:[],lounge:[],extras:[],gaming:[],phone:[],dining:[]};
+const SP={beds:[],seats:[],lounge:[],extras:[],gaming:[],phone:[],dining:[],cafe:[],out:[]};
 const DYN={steam:[],tvGlow:null,lamps:[],lampGlows:[],blankets:[],cones:[],leds:[],docks:[],strip:[],stripGlows:[],tv:null,lava:[],disco:null,discoGlints:[]};
 const C={floor:0x241d2e,plank:0x2b2337,wallB:0x2c2343,wallL:0x271f3c,trim:0x3b2f58,wood:0x5c3f35,woodD:0x3d2a24,dark:0x2a2236};
 
@@ -332,6 +332,111 @@ function setMeetingVisuals(on){
   MEET.light.intensity=on?1.2:0.25;
 }
 
+/* ============================ outside: street, Moon Café, shops ============================ */
+const OUT={cars:[],carT:1.5};
+const CLIP=[new THREE.Plane(new THREE.Vector3(0,0,-1),16.25),new THREE.Plane(new THREE.Vector3(0,0,1),0)];
+{
+  const pave=0x3a3450, line=0x443d5c;
+  BB(22,-0.3,36.3,16,-0.4,0,pave,{r:0,cast:false});
+  for(let z=1;z<16;z+=1){ BB(22.1,z,27.9,z+0.015,0,0.004,line,{r:0,cast:false}); BB(31.1,z,36.3,z+0.015,0,0.004,line,{r:0,cast:false}); }
+  for(let x=23;x<28;x+=1) BB(x,0,x+0.015,16,0,0.004,line,{r:0,cast:false});
+  for(let x=32;x<36.3;x+=1) BB(x,0,x+0.015,16,0,0.004,line,{r:0,cast:false});
+  // road along z, curbs, lane line, zebra crossing (people only cross here)
+  BB(28,-0.3,31,16,0,0.012,0x1a1822,{r:0,cast:false});
+  BB(27.9,0,28.05,16,0,0.07,0x5a5470,{r:0,cast:false}); BB(30.95,0,31.1,16,0,0.07,0x5a5470,{r:0,cast:false});
+  for(let z=0.4;z<16;z+=1.4) if(z+0.7<6.9||z>8.5) BB(29.45,z,29.55,z+0.7,0.012,0.016,0xffd166,{r:0,cast:false});
+  for(let x=28.2;x<30.9;x+=0.5) BB(x,7.0,x+0.3,8.4,0.012,0.018,0xeeeeee,{r:0,cast:false});
+  blockArea(27.9,0,31.1,7.0); blockArea(27.9,8.4,31.1,16.3);
+  // back wall with a road tunnel
+  BB(22,-0.3,28,0,0,3.2,C.wallB,{r:0,cast:false}); BB(31,-0.3,36.3,0,0,3.2,C.wallB,{r:0,cast:false});
+  BB(28,-0.3,31,0,2.1,3.2,C.wallB,{r:0,cast:false}); BB(28,-2.4,31,-0.3,0,2.1,0x07060b,{r:0,cast:false});
+  BB(27.8,-0.32,31.2,0.06,2.1,2.24,C.trim,{r:0,cast:false}); BB(22,-0.35,36.35,0.02,3.2,3.32,C.trim,{r:0,cast:false});
+  [28.4,29.5,30.6].forEach(x=>sph(0.05,0xffb86b,x,2.02,0.08,scene,{em:1.3,cast:false,seg:8}));
+  // the office's glass front, with a door to the street
+  const glassF=new THREE.MeshLambertMaterial({color:0x9fe8ff,transparent:true,opacity:.1,depthWrite:false});
+  [[0,6.6],[8.4,16]].forEach(([z0,z1])=>{ blockArea(21.95,z0,22.05,z1); const m=BB(21.95,z0,22.05,z1,0.05,2.6,0,{mat:glassF,r:0,cast:false,recv:false}); m.renderOrder=2; });
+  [0.05,2.2,4.4,6.6,8.4,10.6,12.8,15.95].forEach(z=>B(0.1,2.7,0.1,C.trim,22,1.35,z,scene,{r:0.03}));
+  BB(21.94,0,22.06,16,2.6,2.68,0x5ee7ff,{em:1,r:0,cast:false}); BB(21.9,6.55,22.1,8.45,2.15,2.3,C.trim,{r:0.02});
+  const dn=neon('outside →','#7dffb2',1.1,0.27,'700 130px DM Sans, sans-serif'); dn.rotation.y=PI/2; dn.position.set(22.12,2.42,7.5); scene.add(dn);
+
+  const building=(x0,x1,h,facade)=>{ blockArea(x0,0,x1,2.6); BB(x0,0,x1,2.6,0,h,facade,{r:0.06}); BB(x0-0.05,0,x1+0.05,2.72,h,h+0.12,shade(facade,.18),{r:0.03}); };
+  const pane=(x0,x1,glass,em)=>{ BB(x0-0.08,2.58,x1+0.08,2.7,0.18,0.26,0x2a2236,{r:0}); return BB(x0,2.6,x1,2.64,0.26,2.05,0,{mat:own(glass,em),r:0,cast:false}); };
+  const sign=(text,color,x,y,w,h,font)=>{ const m=neon(text,color,w,h,font||'400 150px Pacifico, cursive'); m.position.set(x,y,2.66); scene.add(m); glow(x,y,2.9,color,w*1.15,.22); };
+
+  // Moon Café + terrace
+  building(22.4,27.7,3.3,0x3a2b4a);
+  pane(22.9,26.0,'#ffcf8a',.55); BB(23.1,2.645,25.8,2.66,0.26,0.95,0x7a4a2e,{r:0,cast:false});
+  [23.6,24.5,25.4].forEach(x=>{ sph(0.07,0xfff2d6,x,1.75,2.67,scene,{em:1.2,cast:false,seg:8}); BB(x-0.006,2.66,x+0.006,2.67,1.82,2.05,0x222222,{r:0,cast:false}); });
+  BB(26.3,2.6,27.2,2.67,0,2.05,0x5c3f35,{r:0.02}); sph(0.035,0xffd166,27.05,1.0,2.7,scene,{seg:8});
+  for(let k=0;k<12;k++){ const m=B(0.42,0.04,0.85,k%2?0xfff2e0:0xff8fb1,22.85+k*0.42+0.21,2.32,3.0,scene,{r:0}); m.rotation.x=-0.38; }
+  sign('moon café','#ff8fc0',24.5,2.85,2.6,0.62);
+  sph(0.16,0xfff2c8,26.6,2.9,2.66,scene,{em:.9,cast:false}); 
+  plight(0xffb070,1.3,7,25,1.8,3.8);
+  const cafeCol=[0xff5fa2,0x5ee7ff,0xffd166];
+  [23.6,25.3,27.0].forEach((tx,ti)=>{
+    const tz=4.75; blockArea(tx-0.35,tz-0.35,tx+0.35,tz+0.35);
+    cyl(0.42,0.05,0xf4f2f8,tx,0.75,tz,{seg:24}); cyl(0.04,0.72,0x333333,tx,0.37,tz); cyl(0.22,0.03,0x333333,tx,0.015,tz);
+    [[tz-0.72,0],[tz+0.72,PI]].forEach(([cz,rot])=>{
+      const back=rot===0?-1:1;
+      cyl(0.22,0.06,cafeCol[ti],tx,0.44,cz,{seg:18}); B(0.42,0.42,0.06,cafeCol[ti],tx,0.69,cz+back*0.22,scene,{r:0.03}); cyl(0.03,0.42,0x333333,tx,0.21,cz);
+      const lz=tz+(rot===0?-0.12:0.12), f=rot===0?1:-1;
+      B(0.36,0.025,0.25,0xc9cbe0,tx-0.08,0.79,lz,scene,{r:0.01}); B(0.36,0.24,0.025,0xc9cbe0,tx-0.08,0.92,lz+f*0.12,scene,{r:0.01});
+      const gm=own('#1a1d26',0,'#8fd3ff'); B(0.32,0.2,0.008,0,tx-0.08,0.92,lz+f*0.105,scene,{mat:gm,r:0,cast:false});
+      cyl(0.045,0.13,0xe9f6ff,tx+0.17,0.84,lz,{r2:0.035}); cyl(0.008,0.1,0x5ee7ff,tx+0.18,0.93,lz);
+      SP.cafe.push({kind:'cafe',approach:{x:tx,z:cz},pose:{x:tx,y:0.18,z:cz,rot,anim:'cafe'},laptop:gm});
+    });
+  });
+  [[22.6,6.4],[27.6,6.4]].forEach(([x,z])=>cyl(0.04,2.6,0x2a2236,x,1.3,z));
+  fairy(Array.from({length:13},(_,k)=>{ const t=k/12; return [22.6+t*5,2.5-Math.sin(PI*t)*0.3,6.4]; }));
+  fairy(Array.from({length:9},(_,k)=>{ const t=k/8; return [22.6,2.6-Math.sin(PI*t)*0.25,2.75+t*3.6]; }));
+  fairy(Array.from({length:9},(_,k)=>{ const t=k/8; return [27.6,2.6-Math.sin(PI*t)*0.25,2.75+t*3.6]; }));
+
+  // shops across the road
+  building(31.3,33.0,2.9,0x23394a); pane(31.55,32.75,'#7fe9ff',.45); sign('boba','#b6f36a',32.15,2.5,1.2,0.3);
+  [31.85,32.15,32.45].forEach(x=>{ BB(x-0.06,2.645,x+0.06,2.66,0.9,1.15,0xf3e3c3,{r:0,cast:false}); BB(x-0.004,2.66,x+0.004,2.665,1.15,1.32,0xff5fa2,{r:0,cast:false}); });
+  building(33.2,34.9,3.1,0x2a2a38); pane(33.45,34.65,'#e8f4ff',.65); sign('24/7','#ff4d6d',34.05,2.62,1.0,0.25,'700 160px DM Sans, sans-serif');
+  [0.55,1.0,1.45].forEach((y,r)=>{ for(let k=0;k<7;k++) BB(33.55+k*0.15,2.645,33.65+k*0.15,2.66,y,y+0.22,[0xff5fa2,0xffd166,0x5ee7ff,0xb6f36a][(k+r)%4],{r:0,cast:false}); });
+  building(35.1,36.3,2.9,0x3a1f45); pane(35.3,36.1,'#ff5fa2',.5); sign('arcade','#a78bfa',35.7,2.5,1.1,0.27);
+  [35.5,35.9].forEach(x=>{ BB(x-0.13,2.645,x+0.13,2.66,0.3,1.4,0x1a0f24,{r:0,cast:false}); BB(x-0.09,2.66,x+0.09,2.665,1.0,1.25,0x5ee7ff,{em:1,r:0,cast:false}); });
+  plight(0x9fd8ff,1.1,7,33.8,1.8,3.9);
+
+  // street lamps, trees, benches, little details
+  const lamp=(x,z,light)=>{ blockArea(x-0.12,z-0.12,x+0.12,z+0.12); cyl(0.05,2.8,0x2a2236,x,1.4,z); cyl(0.11,0.08,0x2a2236,x,0.04,z); sph(0.14,0xffe2b0,x,2.85,z,scene,{em:1.3,cast:false}); glow(x,2.8,z,'#ffcf9e',1.8,.5); if(light) plight(0xffcf9e,1.35,8,x,2.6,z); };
+  lamp(27.55,9.2,true); lamp(31.45,5.2,true); lamp(31.45,13.8,true); lamp(27.55,2.9,false);
+  const tree=(x,z,sc=1)=>{ blockArea(x-0.3*sc,z-0.3*sc,x+0.3*sc,z+0.3*sc); cyl(0.09*sc,1.2*sc,0x5c3f35,x,0.6*sc,z); [[0,1.5,0,.55,0x2f8f5b],[.3,1.25,.15,.4,0x3fae6e],[-.3,1.3,-.1,.42,0x2f8f5b],[.05,1.85,-.05,.38,0x4cc27f]].forEach(([dx,dy,dz,r,c])=>sph(r*sc,c,x+dx*sc,dy*sc,z+dz*sc,scene,{seg:12})); cyl(0.42*sc,0.06,0x2a2236,x,0.03,z); };
+  rug(22.5,11.4,27.5,15.8,0.6,0x203a2c,0.015);
+  tree(23.0,12.0,1.1); tree(26.9,15.1); tree(26.8,11.9,0.9); tree(31.9,9.0); tree(35.7,8.6,1.1); tree(33.6,15.3);
+  const bench=(x0,z,seats)=>{ BB(x0,z-0.25,x0+1.6,z+0.22,0.42,0.5,0x9c6b43,{r:0.03}); BB(x0,z-0.33,x0+1.6,z-0.25,0.5,0.95,0x9c6b43,{r:0.03}); [x0+0.12,x0+1.48].forEach(x=>BB(x-0.04,z-0.25,x+0.04,z+0.2,0,0.42,0x2a2236,{r:0}));
+    seats.forEach(sx=>SP.out.push({kind:'bench',approach:{x:sx,z:z+0.55},pose:{x:sx,y:0.22,z,rot:0,anim:'bench'}})); };
+  bench(23.8,13.6,[24.2,25.0]); bench(32.3,12.6,[32.7,33.5]); bench(34.5,12.6,[34.9,35.7]);
+  [[24.45,'café'],[32.15,'boba'],[34.05,'24/7'],[35.7,'arcade']].forEach(([x])=>SP.out.push({kind:'window',approach:{x,z:3.25},pose:{x,y:0,z:3.2,rot:PI,anim:'browse'}}));
+  cyl(0.1,0.42,0xe5484d,27.55,0.21,10.4); sph(0.1,0xe5484d,27.55,0.43,10.4,scene,{seg:8});
+  cyl(0.18,0.55,0x3a3f4a,31.45,0.28,11.2,{r2:0.15}); plant(27.5,6.0,0.7);
+
+  // cars that drive out of the tunnel and off the front edge
+  const CAR_COLS=['#ff5fa2','#5ee7ff','#ffd166','#a78bfa','#f4f2f8','#7dffb2'];
+  const cmat=(c,em=0)=>{ const m=own(c,em); m.clippingPlanes=CLIP; return m; };
+  for(let i=0;i<4;i++){
+    const g=new THREE.Group(), col=CAR_COLS[i%CAR_COLS.length];
+    mesh(rbox(0.82,0.38,1.72,0.15),cmat(col),0,0.34,0,g); mesh(rbox(0.7,0.34,0.95,0.14),cmat(shade(col,-.25)),0,0.68,-0.1,g);
+    mesh(rbox(0.62,0.22,0.04,0.02),cmat('#1a2236',.3),0,0.7,0.38,g); mesh(rbox(0.62,0.2,0.04,0.02),cmat('#1a2236',.3),0,0.7,-0.58,g);
+    [[-0.38,0.55],[0.38,0.55],[-0.38,-0.55],[0.38,-0.55]].forEach(([x,z])=>{ const w=mesh(cached('wheel',()=>new THREE.CylinderGeometry(0.16,0.16,0.12,14)),cmat('#111111'),x,0.16,z,g); w.rotation.z=PI/2; });
+    [-0.26,0.26].forEach(x=>{ mesh(cached('hl',()=>new THREE.SphereGeometry(0.06,8,6)),cmat('#ffffff',1.3),x,0.4,0.86,g,{cast:false}); mesh(cached('tl',()=>new THREE.SphereGeometry(0.05,8,6)),cmat('#ff3355',1.2),x,0.4,-0.86,g,{cast:false}); });
+    const hg=glow(0,0.42,1.25,'#fff2d6',1.4,.45,g); hg.material.clippingPlanes=CLIP;
+    g.visible=false; scene.add(g); OUT.cars.push({g,active:false});
+  }
+}
+function tickCars(dt){
+  OUT.carT-=dt;
+  if(OUT.carT<=0){ OUT.carT=rand(2.5,6.5); const c=OUT.cars.find(c=>!c.active);
+    if(c){ const dir=Math.random()<.5?1:-1; Object.assign(c,{active:true,dir,speed:rand(3,4.6)}); c.g.position.set(dir>0?28.75:30.25,0,dir>0?-1.3:17.6); c.g.rotation.y=dir>0?0:PI; c.g.visible=true; } }
+  const busy=ALL().some(ch=>{ const q=ch.g.position; return q.x>27.7&&q.x<31.3&&q.z>6.5&&q.z<8.9; });
+  OUT.cars.forEach(c=>{ if(!c.active) return; const z=c.g.position.z;
+    const waiting= busy && (c.dir>0 ? (z>3.6&&z<5.9) : (z>9.5&&z<12.4));
+    if(!waiting) c.g.position.z+=c.dir*c.speed*dt;
+    if((c.dir>0&&z>18)||(c.dir<0&&z<-1.8)){ c.active=false; c.g.visible=false; } });
+}
+
 /* ============================ characters (soft, rounded) ============================ */
 function hairParts(g,L){
   const c=L.hair, s=L.hairStyle;
@@ -386,6 +491,8 @@ function buildPerson(L){
   P.mug=new THREE.Group(); cyl(0.065,0.14,0xffffff,0,0,0,{parent:P.mug}); torus(0.038,0.012,PI*2,0xffffff,0.075,0,0,P.mug); P.mug.position.set(0,-0.02,0.08); P.armRH.add(P.mug);
   P.pad=new THREE.Group(); B(0.26,0.05,0.13,0x1b1622,0,0,0,P.pad,{r:0.025}); sph(0.02,0x5ee7ff,0.07,0.03,0.02,P.pad,{em:1,cast:false,seg:6}); sph(0.02,0xff5fa2,0.1,0.03,-0.02,P.pad,{em:1,cast:false,seg:6}); B(0.05,0.02,0.05,0x444444,-0.08,0.03,0,P.pad,{r:0});
   P.pad.position.set(-0.17,-0.02,0.06); P.pad.rotation.x=PI/2; P.armRH.add(P.pad);
+  P.boba=new THREE.Group(); cyl(0.055,0.16,0xf1dcb8,0,0,0,{parent:P.boba,r2:0.045}); cyl(0.058,0.014,0xffffff,0,0.085,0,{parent:P.boba}); cyl(0.008,0.14,0xff5fa2,0.012,0.15,0,{parent:P.boba}); [-0.02,0.02].forEach(dx=>sph(0.014,0x2a1a10,dx,-0.06,0.02,P.boba,{seg:6,cast:false})); P.boba.position.set(0,-0.03,0.07); P.armRH.add(P.boba);
+  P.bag=new THREE.Group(); B(0.2,0.22,0.08,0xff8fb1,0,-0.13,0,P.bag,{r:0.02}); torus(0.05,0.008,PI,0xffffff,0,-0.02,0,P.bag); P.armLH.add(P.bag);
   P.sticks=new THREE.Group(); [-0.012,0.012].forEach(dx=>{ const c=capsule(0.006,0.2,0xe8c99a,dx,0,0,P.sticks,{cast:false}); c.rotation.x=0.3; }); P.sticks.position.set(0,-0.04,0.07); P.armRH.add(P.sticks);
   return P;
 }
@@ -446,6 +553,7 @@ function goTo(ch,s){
   ch.spot=s; if(s) s.by=ch.id;
   ch.g.position.y=0;
   ch.path= s? findPath({x:ch.g.position.x,z:ch.g.position.z}, s.approach) : [];
+  let len=0, q={x:ch.g.position.x,z:ch.g.position.z}; ch.path.forEach(pt=>{ len+=Math.hypot(pt.x-q.x,pt.z-q.z); q=pt; }); ch.speed= len>14? 3.2 : 2.1;
 }
 function placeAt(ch,s){ unpose(ch); if(ch.spot&&ch.spot.by===ch.id) ch.spot.by=null; ch.spot=s; s.by=ch.id; ch.path=[]; snapPose(ch,s); }
 const free=list=>list.filter(s=>!s.by);
@@ -454,9 +562,9 @@ function loungeFor(){ const f=free(SP.lounge); return f[Math.floor(Math.random()
 function lerpAng(a,b,t){ const d=((b-a+PI)%(2*PI)+2*PI)%(2*PI)-PI; return a+d*t; }
 
 function meetingSeatFor(ch){ const f=free(SP.meeting); return f[0]||SP.meeting[0]; }
-const ACTS=[['working','💻','locked in'],['gaming','🎮','gaming'],['meeting','🤝','meeting'],['eating','🍜','eating'],['phone','📱','on phone']];
-const ACT_ICON={working:'💻',gaming:'🎮',meeting:'🤝',eating:'🍜',phone:'📱',offline:'💤'};
-const ACT_ANIM={gaming:'game',eating:'eat',phone:'phone'};
+const ACTS=[['working','💻','working'],['cafe','☕','café'],['gaming','🎮','gaming'],['meeting','🤝','meeting'],['eating','🍜','eating'],['phone','📱','phone'],['out','🛍️','out']];
+const ACT_ICON={working:'💻',cafe:'☕',gaming:'🎮',meeting:'🤝',eating:'🍜',phone:'📱',out:'🛍️',offline:'💤'};
+const ACT_ANIM={gaming:'game',eating:'eat',phone:'phone',cafe:'cafe'};
 function firstFree(lists){ for(const l of lists){ const f=free(l); if(f.length) return f[0]; } return lists[0][0]; }
 function spotFor(ch,st){
   if(st==='offline') return SP.beds[ch.e.bed];
@@ -465,6 +573,8 @@ function spotFor(ch,st){
   if(st==='gaming') return firstFree([SP.gaming,SP.phone]);
   if(st==='phone') return firstFree([SP.phone,SP.gaming]);
   if(st==='eating') return firstFree([SP.dining]);
+  if(st==='cafe') return firstFree([SP.cafe]);
+  if(st==='out'){ ch.hasBag=Math.random()<.5; const f=free(SP.out); return f[Math.floor(Math.random()*f.length)]||SP.out[0]; }
   return seatFor(ch);
 }
 function setState(ch,st,{instant=false,quiet=false}={}){
@@ -514,6 +624,9 @@ function aiTick(ch,dt){
       if(Math.random()<.5){ const f=free(SP.extras); if(f.length){ goTo(ch,f[Math.floor(Math.random()*f.length)]); ch.timer=rand(5,8); return; } }
       ch.timer=rand(14,28);
     } else { goTo(ch,seatFor(ch)); ch.timer=rand(16,30); }
+  } else if(ch.state==='out'){
+    const f=free(SP.out).filter(sp=>sp!==ch.spot); if(f.length) goTo(ch,f[Math.floor(Math.random()*f.length)]);
+    ch.timer=rand(8,15);
   } else ch.timer=30;
 }
 
@@ -523,7 +636,7 @@ function animPerson(ch,t,force){
   const a= force || (ch.path.length||(ch.glide&&!ch.posed&&ch.glide.t<0.6) ? 'walk' : (ch.posed? (ch.animOverride||ch.spot.pose.anim) : 'stand'));
   ch.anim=a;
   RESET_KEYS.forEach(k=>P[k].rotation.set(0,0,0));
-  P.body.position.y=0; P.phone.visible=false; P.mug.visible=false; if(P.pad){ P.pad.visible=false; P.sticks.visible=false; }
+  P.body.position.y=0; P.phone.visible=false; P.mug.visible=false; if(P.pad){ P.pad.visible=false; P.sticks.visible=false; P.boba.visible=false; P.bag.visible=false; }
   const sit=()=>{ P.legL.rotation.x=-PI/2; P.legR.rotation.x=-PI/2; };
   if(a==='walk'){ const s=Math.sin(t*11+ph); P.legL.rotation.x=s*.6; P.legR.rotation.x=-s*.6; P.armL.rotation.x=-s*.55; P.armR.rotation.x=s*.55; P.body.position.y=Math.abs(Math.cos(t*11+ph))*.05; P.head.rotation.z=Math.sin(t*5.5+ph)*.05; }
   else if(a==='type'){ sit();
@@ -534,6 +647,11 @@ function animPerson(ch,t,force){
   else if(a==='sleep'){ P.torso.rotation.x=Math.sin(t*1.5+ph)*.025; P.head.rotation.y=Math.sin(t*.3+ph)*.1; }
   else if(a==='mug'){ const sip=Math.sin(t*1.1+ph)>.75; P.armR.rotation.x=sip?-2.1:-1.0; P.head.rotation.x=sip?-.25:0; P.mug.visible=true; }
   else if(a==='board'){ P.armR.rotation.x=-2.4+Math.sin(t*5)*.18; P.armR.rotation.z=Math.sin(t*3)*.25; P.head.rotation.x=-.1; }
+  else if(a==='cafe'){ sit(); const sip=Math.sin(t*.7+ph)>.8;
+    if(sip){ P.armR.rotation.x=-2.0; P.armR.rotation.z=.2; P.mug.visible=true; P.armL.rotation.x=-1.25; P.head.rotation.x=-.15; }
+    else { P.armL.rotation.x=-1.25+Math.sin(t*16+ph)*.07; P.armR.rotation.x=-1.25+Math.sin(t*16+ph+1.6)*.07; P.head.rotation.x=.12; } }
+  else if(a==='browse'){ const sip=Math.sin(t*.9+ph)>.75; P.armR.rotation.x=sip?-2.0:-0.75; P.armR.rotation.z=sip?.2:.05; P.head.rotation.y=Math.sin(t*.6+ph)*.45; P.head.rotation.x=-.06; }
+  else if(a==='bench'){ sit(); const sip=Math.sin(t*.8+ph)>.75; P.armR.rotation.x=sip?-2.0:-0.6; P.armL.rotation.x=-0.3; P.armL.rotation.z=-.3; P.head.rotation.y=Math.sin(t*.4+ph)*.5; }
   else if(a==='game'){ sit(); const j=Math.sin(t*22+ph)*.05; P.armR.rotation.x=-1.15+j; P.armL.rotation.x=-1.15-j; P.armR.rotation.z=.42; P.armL.rotation.z=-.42; P.pad.visible=true;
     P.head.rotation.x=.12; P.torso.rotation.z=Math.sin(t*1.7+ph)>.8? .12 : Math.sin(t*1.7+ph)<-.8? -.12 : 0; P.body.position.y=Math.sin(t*3+ph)>.95?.03:0; }
   else if(a==='eat'){ if(ch.spot&&ch.spot.pose.sit) sit(); const bite=Math.sin(t*1.6+ph)>.55; P.armR.rotation.x=bite?-2.0:-1.1; P.armR.rotation.z=bite?.25:.1; P.armL.rotation.x=-1.0; P.armL.rotation.z=-.2; P.sticks.visible=true;
@@ -545,6 +663,7 @@ function animPerson(ch,t,force){
   else if(a==='wave'){ P.armR.rotation.z=2.5+Math.sin(t*8)*.35; P.head.rotation.z=Math.sin(t*2)*.08; P.body.position.y=Math.abs(Math.sin(t*4))*.03; }
   else if(a==='vibe'){ P.body.position.y=Math.abs(Math.sin(t*4))*.04; P.head.rotation.z=Math.sin(t*4)*.12; P.armL.rotation.z=-.25-Math.abs(Math.sin(t*4))*.2; P.armR.rotation.z=.25+Math.abs(Math.sin(t*4))*.2; }
   else { P.torso.rotation.z=Math.sin(t*1.4+ph)*.025; P.head.rotation.y=Math.sin(t*.5+ph)*.3; }
+  if(ch.state==='out'&&(a==='walk'||a==='browse'||a==='bench')){ P.boba.visible=true; P.bag.visible=!!ch.hasBag; }
   const blink= a==='sleep' || ((t+ph*3)%4.3)<.12;
   P.eyes.forEach(e=>e.scale.y=blink?.12:1);
   if(ch.ring){ ch.ring.visible= ch.speaking && a!=='sleep'; if(ch.ring.visible){ const s=1+Math.sin(t*9)*.08; ch.ring.scale.set(s,s,s); } }
@@ -570,7 +689,7 @@ function moveChar(ch,dt){
     return;
   }
   if(!ch.path.length) return;
-  const p=ch.path[0], pos=ch.g.position, dx=p.x-pos.x, dz=p.z-pos.z, d=Math.hypot(dx,dz), step=(ch.kind==='bot'?1.6:2.1)*dt;
+  const p=ch.path[0], pos=ch.g.position, dx=p.x-pos.x, dz=p.z-pos.z, d=Math.hypot(dx,dz), step=(ch.kind==='bot'?1.6:(ch.speed||2.1))*dt;
   if(d>0.02) ch.g.rotation.y=lerpAng(ch.g.rotation.y,Math.atan2(dx,dz),Math.min(1,dt*12));
   if(d<=step){ pos.x=p.x; pos.z=p.z; ch.path.shift(); } else { pos.x+=dx/d*step; pos.z+=dz/d*step; }
   if(!ch.path.length&&ch.spot) ch.glide={t:0,from:pos.clone(),to:ch.spot.pose,r0:ch.g.rotation.y};
@@ -642,7 +761,7 @@ stage.addEventListener('pointerdown',e=>{ try{ stage.setPointerCapture(e.pointer
   if(ptrs.size===1) drag={x:e.clientX,y:e.clientY,yaw:CAM.yaw,pitch:CAM.pitch,moved:false};
   if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch0=Math.hypot(a.x-b.x,a.y-b.y)||1; zoom0=CAM.zoom; if(drag) drag.moved=true; } });
 stage.addEventListener('pointermove',e=>{ if(!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; CAM.zoom=Math.min(2.6,Math.max(.8,zoom0*Math.hypot(a.x-b.x,a.y-b.y)/pinch0)); placeCamera(); return; }
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; CAM.zoom=Math.min(2.6,Math.max(.5,zoom0*Math.hypot(a.x-b.x,a.y-b.y)/pinch0)); viewGoal=null; placeCamera(); return; }
   if(!drag) return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
   if(Math.hypot(dx,dy)>4){ drag.moved=true; stage.classList.add('dragging'); }
   if(drag.moved){ CAM.yaw=Math.min(1.4,Math.max(0.15,drag.yaw-dx*0.006)); CAM.pitch=Math.min(1.1,Math.max(0.35,drag.pitch+dy*0.004)); placeCamera(); } });
@@ -651,7 +770,7 @@ function endPtr(e){ if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
     const hits=ray.intersectObjects(CH.filter(c=>c.kind==='person').map(c=>c.g),true); const h=hits.find(x=>x.object.userData.cid&&x.object.isMesh); if(h) openQuick(byId(h.object.userData.cid),e.clientX-r.left,e.clientY-r.top); else closeQuick(); }
   if(ptrs.size===0) drag=null; }
 stage.addEventListener('pointerup',endPtr); stage.addEventListener('pointercancel',endPtr);
-stage.addEventListener('wheel',e=>{ e.preventDefault(); CAM.zoom=Math.min(2.6,Math.max(.8,CAM.zoom*(1-e.deltaY*0.0012))); placeCamera(); },{passive:false});
+stage.addEventListener('wheel',e=>{ e.preventDefault(); CAM.zoom=Math.min(2.6,Math.max(.5,CAM.zoom*(1-e.deltaY*0.0012))); viewGoal=null; placeCamera(); },{passive:false});
 
 /* ============================ quick menu (click a character) ============================ */
 const quick=document.createElement('div'); quick.className='quick'; quick.hidden=true; stage.appendChild(quick);
@@ -677,14 +796,14 @@ const vb=(ch,s3,base)=>ch.e.name==='You'?base:s3;
 function logState(ch,a,b){
   const n=ch.e.name;
   if(b==='offline') return log('voiceStateUpdate',`${n} left 🔊 Office`,`${n} ${vb(ch,'logs','log')} off and ${vb(ch,'goes','go')} to bed`);
-  const what={working:[`${vb(ch,'locks','lock')} in at the big table`],gaming:[`${vb(ch,'grabs','grab')} a controller on the couch`],meeting:[`${vb(ch,'heads','head')} into a meeting with Simon`],eating:[`${vb(ch,'gets','get')} a bowl of ramen at the bar`],phone:[`${vb(ch,'flops','flop')} onto a beanbag to scroll`]}[b];
+  const what={working:[`${vb(ch,'locks','lock')} in at the big table`],gaming:[`${vb(ch,'grabs','grab')} a controller on the couch`],meeting:[`${vb(ch,'heads','head')} into a meeting with Simon`],eating:[`${vb(ch,'gets','get')} a bowl of ramen at the bar`],cafe:[`${vb(ch,'heads','head')} out to work from Moon Café`],out:[`${vb(ch,'heads','head')} out to the shops`],phone:[`${vb(ch,'flops','flop')} onto a beanbag to scroll`]}[b];
   if(!what) return;
   if(a==='offline') return log('voiceStateUpdate',`${n} joined 🔊 Office`,`${n} ${vb(ch,'wakes','wake')} up and ${what[0]}`);
   return log('activity',`${n} → ${b}`,`${n} ${what[0]}`);
 }
 function rowSub(ch){
   if(ch.kind==='bot') return ch.state==='off'?'not in the call · charging':ch.playing?`in call · playing ${ch.e.song}`:'in call · on the decks';
-  const sub={offline:'not in the call · sleeping',working:'locked in at the big table',gaming:'gaming on the couch',meeting:'in a meeting with Simon',eating:'eating ramen at the bar',phone:'scrolling on a beanbag'}[ch.state]||'';
+  const sub={offline:'not in the call · sleeping',working:'locked in at the big table',gaming:'gaming on the couch',meeting:'in a meeting with Simon',eating:'eating ramen at the bar',phone:'scrolling on a beanbag',cafe:'working from Moon Café',out:'out at the shops'}[ch.state]||'';
   return ch.live&&ch.live.deafened&&ch.state!=='offline' ? sub+' · deafened' : sub;
 }
 function renderRows(){
@@ -721,6 +840,8 @@ function pickActivity(ch,act){
     if(!API.onPickActivity||!API.onPickActivity(act)){ log('activity','not connected to office-bot right now, try again in a moment'); return; }
     setState(ch,act,{quiet:true});
   } else setState(ch,act);
+  if(act==='cafe'||act==='out'){ if(currentView==='office') setView('outside'); }
+  else if(currentView==='outside') setView('office');
 }
 function activityPicker(ch,{withAsleep}){
   const seg=document.createElement('div'); seg.className='seg acts'+(withAsleep?' six':''); seg.setAttribute('role','group'); seg.setAttribute('aria-label',`What ${ch.e.name} is doing`);
@@ -745,7 +866,7 @@ $('demo').onclick=()=>{
   $('log').innerHTML=''; log('demo','lights out, nobody in the call yet'); renderRows();
   const P=id=>byId(id);
   [[600,()=>setState(P('mia'),'working')],[2200,()=>setState(P('dan'),'working')],[3800,()=>setBot(P('dj'),true)],[6200,()=>setPlaying(P('dj'),true)],
-   [7400,()=>setState(P('you'),'working')],[10000,()=>setState(P('dan'),'eating')],[12000,()=>setState(P('zee'),'gaming')],[15000,()=>setState(P('mia'),'meeting')],[19000,()=>setState(P('you'),'phone')],[23000,()=>setState(P('dan'),'working')],[27000,()=>setState(P('mia'),'offline')]]
+   [7400,()=>setState(P('you'),'working')],[10000,()=>setState(P('dan'),'eating')],[12000,()=>setState(P('zee'),'gaming')],[15000,()=>setState(P('mia'),'meeting')],[18000,()=>{ setState(P('you'),'cafe'); setView('all'); }],[21000,()=>setState(P('zee'),'out')],[26000,()=>setState(P('dan'),'working')],[30000,()=>setState(P('mia'),'offline')]]
    .forEach(([ms,fn])=>demoTimers.push(setTimeout(fn,ms)));
 };
 $('allSleep').onclick=()=>{ demoTimers.forEach(clearTimeout); demoTimers=[]; CH.forEach(ch=>{ if(ch.kind==='bot') setBot(ch,false); else setState(ch,'offline'); }); };
@@ -863,7 +984,22 @@ function tickLights(dt){
 if($('lightsBtn')){ $('lightsBtn').addEventListener('pointerdown',e=>e.stopPropagation()); $('lightsBtn').onclick=()=>setLights(!LIGHTS.on); }
 setLights(LIGHTS.on);
 
-function tick(dt){ TT+=dt; tickLights(dt); updateMeeting(); ALL().forEach(ch=>{ moveChar(ch,dt); aiTick(ch,dt); ch.kind==='bot'?animBot(ch,TT):animPerson(ch,TT); }); ambient(dt,TT);
+/* ============================ views: office / outside / all ============================ */
+const VIEWS={office:{t:[11,0,8.4],z:1},outside:{t:[29.4,0,7.2],z:0.98},all:{t:[18.2,0,7.8],z:0.62}};
+let viewGoal=null, currentView='office';
+function setView(v){
+  const V=VIEWS[v]; if(!V) return; currentView=v;
+  viewGoal={t:new THREE.Vector3(...V.t),z:V.z};
+  document.querySelectorAll('#views button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+}
+function tickView(dt){
+  if(!viewGoal) return;
+  const k=Math.min(1,dt*4); CAM.target.lerp(viewGoal.t,k); CAM.zoom+=(viewGoal.z-CAM.zoom)*k; placeCamera();
+  if(CAM.target.distanceTo(viewGoal.t)<0.01&&Math.abs(CAM.zoom-viewGoal.z)<0.002){ CAM.target.copy(viewGoal.t); CAM.zoom=viewGoal.z; placeCamera(); viewGoal=null; }
+}
+document.querySelectorAll('#views button').forEach(b=>{ b.addEventListener('pointerdown',e=>e.stopPropagation()); b.onclick=()=>setView(b.dataset.v); });
+
+function tick(dt){ TT+=dt; tickLights(dt); tickView(dt); tickCars(dt); updateMeeting(); ALL().forEach(ch=>{ moveChar(ch,dt); aiTick(ch,dt); ch.kind==='bot'?animBot(ch,TT):animPerson(ch,TT); }); ambient(dt,TT);
   DYN.docks.forEach((m,i)=>{ const b=BOTS[i]&&byId(BOTS[i].id); m.emissiveIntensity= b&&b.state==='off'&&!b.path.length? .4+Math.sin(TT*3)*.3 : .1; }); }
 function frame(now){
   const dt=Math.min(.05,Math.max(0,(now-last)/1000)); last=now;
@@ -936,7 +1072,7 @@ function setLiveStatus(status){
   else { chip.textContent='reconnecting…'; chip.className='mode-chip wait'; }
 }
 const API={setMode,applyLive,setLiveStatus,onSaveLook:null,onPickActivity:null,onSetPrefs:null,
-  debug:{CH,step:(n=1,dt=.05)=>{ for(let i=0;i<n;i++) tick(dt); renderer.render(scene,camera); updateLabels(0); },setState:(id,s)=>setState(byId(id),s),CAM,placeCamera}};
+  debug:{setView,CH,step:(n=1,dt=.05)=>{ for(let i=0;i<n;i++) tick(dt); renderer.render(scene,camera); updateLabels(0); },setState:(id,s)=>setState(byId(id),s),CAM,placeCamera}};
 window.Office=API;
 
 PEOPLE.forEach(p=>makeChar(p,'person'));
